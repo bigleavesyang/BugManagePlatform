@@ -124,11 +124,13 @@ class RegisterModelForm(forms.ModelForm):
     def db_update(self):
         import uuid
         user = models.UserInfo.objects.filter(username=self.cleaned_data['username']).first()
+        # 获取免费版策略对象，加入order表关联
+        project_strategy = models.ProjectStrategy.objects.filter(project_type=0, project_title='免费版').first()
         # user_id传入的是一个user对象，而不是id，user_id_id是user的id,_id是django添加的。
         order_id = str(uuid.uuid4())
         models.Order.objects.create(
             order_status=True, order_number=order_id, order_year=0, order_price=0,
-            order_pay_time=None,order_end_time=None, user_id=user, project_id_id=1
+            order_pay_time=None, order_end_time=None, user=user, project=project_strategy
         )
 
 

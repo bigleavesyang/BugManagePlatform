@@ -44,9 +44,9 @@ class Order(models.Model):
     # 交易状态
     order_status = models.BooleanField(verbose_name='交易状态', default=False)
     # 用户编号
-    user_id = models.ForeignKey(UserInfo, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserInfo, on_delete=models.CASCADE)
     # 项目编号
-    project_id = models.ForeignKey(ProjectStrategy, on_delete=models.CASCADE)
+    project = models.ForeignKey(ProjectStrategy, on_delete=models.CASCADE)
     # 实付金额
     order_price = models.PositiveIntegerField(verbose_name='实付金额')
     # 购买年限
@@ -90,9 +90,9 @@ class ProjectDetail(models.Model):
 # 项目参与表
 class ProjectCollaborator(models.Model):
     # 项目编号
-    project_id = models.ForeignKey(to='ProjectDetail', on_delete=models.CASCADE)
+    project = models.ForeignKey(to='ProjectDetail', on_delete=models.CASCADE)
     # 参与人编号
-    collaborator_id = models.ForeignKey(to='UserInfo', on_delete=models.CASCADE)
+    collaborator = models.ForeignKey(to='UserInfo', on_delete=models.CASCADE)
     # 星标（对于参与人是否是星标项目）
     collaborator_star = models.BooleanField(verbose_name='星标', default=False)
     # 参与时间

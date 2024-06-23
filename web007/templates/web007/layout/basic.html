@@ -31,11 +31,11 @@
                     <a class="nav-link" href="#">价格</a>
                 </li>
             </ul>
-            {% if request.tracer %}
+            {% if request.tracer.user.username %}
                 <!--用户登录后展示-->
                 <div class="dropdown" style="margin-right: 20px">
                   <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                     {{   request.tracer.username }}
+                     {{   request.tracer.user.username }}
                   </button>
                   <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="{% url 'web007:project_list' %}">我的管理平台</a></li>
