@@ -1,0 +1,45 @@
+{% extends 'app01/layout/basic.html' %}
+
+
+{% block content %}
+    <div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="error-container" id="errorContainer">
+            <div id="error-message"></div>
+        </div>
+        <div class="col-md-6">
+            <div class="card" style="margin-top: 20px">
+                <div class="card-header"><i class="fa fa-sign-in fa-lg" style="margin-right: 10px"></i>登录</div>
+                <div class="card-body">
+                    <div id="loginForm">
+                        <form action="" method="post">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">用户名</label>
+                                <input type="text" class="form-control" id="username" name="username" placeholder="请输入用户名" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">密码</label>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="captcha" class="form-label">验证码</label>
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" id="captcha" name="captcha" placeholder="请输入验证码">
+                                    <button class="btn btn-outline-secondary" type="button" id="sendCaptchaBtn">
+                                        发送验证码
+                                    </button>
+                                </div>
+                                <small id="captchaHelp" class="form-text text-muted">如果您没有收到验证码，请检查您的电子邮件或手机短信。</small>
+                            </div>
+                            <div class="mb-3">
+                                <button type="submit" class="btn btn-primary" style="margin-right: 20px">登录</button>
+                                <a href="#" class="btn btn-secondary">忘记密码？</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

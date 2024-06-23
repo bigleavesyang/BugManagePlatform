@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -39,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app01.apps.App01Config',
+    # 'web007.apps.WebConfig',
+    'web007.apps.Web007Config'
 ]
 
 MIDDLEWARE = [
@@ -49,6 +52,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 这里不用写工程名
+    'web007.middleware.auth.AuthMiddleware'
 ]
 
 ROOT_URLCONF = 'BugManagePlatform.urls'
@@ -76,10 +81,26 @@ WSGI_APPLICATION = 'BugManagePlatform.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+
+#需要用pip先安装pymysql,mysqlclient
+# import pymysql
+# pymysql.install_as_MySQLdb()
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.mysql',
+        # 安装了连接池之后的数据库配置
+        'ENGINE': 'dj_db_conn_pool.backends.mysql',
+        'NAME': 'BugManagePlatform',
+        'USER': 'root',
+        'PASSWORD': os.environ.get("DB_PASSWORD"),
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'POOL_OPTIONS': {
+            'pool_size': 10,
+            'max_overflow': 10,
+            'recycle': 24 * 60 * 60,
+            'timeout': 30
+        }
     }
 }
 
@@ -106,13 +127,17 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+# LANGUAGE_CODE = 'en-us'
+# 中文
+LANGUAGE_CODE = 'zh-hans'
 
-TIME_ZONE = 'UTC'
+# TIME_ZONE = 'UTC'     格林尼治时间
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
-USE_TZ = True
+# 默认自动添加事件是按照数据库的utc时间,把这个改成false,则按上面设置的上海时间
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)

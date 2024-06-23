@@ -58,6 +58,8 @@ cover/
 # Django stuff:
 *.log
 local_settings.py
+备注.txt
+注意的点.txt
 db.sqlite3
 db.sqlite3-journal
 

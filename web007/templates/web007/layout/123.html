@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Tracer平台</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="#">产品功能</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">企业方案</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">帮助文档</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">价格</a>
+                </li>
+            </ul>
+            {% if request.tracer %}
+                <!--用户登录后展示-->
+                <div class="dropdown" style="margin-right: 20px">
+                  <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                     {{   request.tracer.username }}
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">Action</a></li>
+                    <li><a class="dropdown-item" href="#">Another action</a></li>
+                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                  </ul>
+                </div>
+                <button onclick="window.location.href='{% url 'web007:logout' %}'" class="btn btn-outline-light" type="button">退出</button>
+            {% else %}
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item" style='margin-right: 10px'>
+                    <a class="nav-link" href="#">登录</a>
+                </li>
+                <li class="nav-item">
+                    <button class="btn btn-outline-light" type="button">用户注册</button>
+                </li>
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+</body>
+</html>

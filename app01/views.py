@@ -16,20 +16,27 @@ class RegisterModelForm(forms.ModelForm):
         label='确认密码', max_length=16, widget=forms.PasswordInput()
     )
     code = forms.CharField(
-        widget=forms.TextInput(),label='验证码', max_length=6, validators=[RegexValidator('^[0-9]{6}$', '验证码格式错误')]
+        widget=forms.TextInput(), label='验证码', max_length=6,
+        validators=[RegexValidator('^[0-9]{6}$', '验证码格式错误')]
     )
 
     class Meta:
         model = app01_models.UserInfo
-        fields = ['username', 'password', 'confirm_password','mobile_phone', 'code']
+        fields = ['username', 'password', 'confirm_password', 'mobile_phone', 'code']
 
     # 为每个表单项添加样式
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for name,filed in self.fields.items():
+        for name, filed in self.fields.items():
             filed.widget.attrs['class'] = 'form-control'
             filed.widget.attrs['placeholder'] = f'请输入{filed.label}'
+
 
 def register(request):
     form = RegisterModelForm()
     return render(request, 'app01/register.html', {'form': form})
+
+def login(request):
+    print(request.GET.get('mobile_phone'),request.GET.get('tpl'))
+    return render(request, 'app01/login.html')
+

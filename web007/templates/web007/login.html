@@ -1,0 +1,154 @@
+{% extends 'web007/layout/basic.html' %}
+
+{% block css %}
+    <style>
+        .error-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* 视图高度 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 9999; /* 确保它显示在最上层 */
+            visibility: hidden; /* 使用visibility代替display来控制显示和隐藏 */
+        }
+
+        #error-message {
+            background-color: #e3e3e3;
+            color: #361d32;
+            padding: 20px;
+            text-align: center;
+            font-size: 20px;
+            border-radius: 5px; /* 添加圆角 */
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); /* 添加阴影效果 */
+        }
+    </style>
+{% endblock %}
+
+{% block title %}用户登录{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="error-container" id="errorContainer">
+                <div id="error-message"></div>
+            </div>
+            <div class="col-md-6">
+                <div class="card" style="margin-top: 60px">
+                    <div class="card-header"><i class="fa fa-user fa-lg" style="margin-right: 10px"></i>用户登录</div>
+                    <div class="card-body">
+                        <div id="loginForm">
+                            <form id='loginForm' action="{% url 'web007:login' %}" method="post">
+                                <!--CSRF TOKEN-->
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">用户名或邮箱</label>
+                                    <input type="tel" class="form-control" id="username" name="username"
+                                           placeholder="请输入用户名或邮箱" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">密码</label>
+                                    <div class="input-group mb-3">
+                                        <input type="password" class="form-control" id="password" name="password"
+                                               placeholder="请输入密码" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="captcha" class="form-label">图片验证码</label>
+                                    <div class="input-group mb-3">
+                                        <input type="text" class="form-control" id="captcha" name="code"
+                                               placeholder="请输入图片验证码" required>
+                                        <img src="{% url 'web007:image_code' %}" alt="Captcha" id="captchaImage" style="width: 120px; height: 30px; margin-left: 10px;"
+                                             title="点击图片更换" onclick="refreshCaptcha()">
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <button type="submit" id="submitBtn" class="btn btn-primary" style="margin-right: 20px">登录</button>
+                                        <span class="text-muted">
+                                            忘记密码？<a href="#" class="text-muted">点击这里</a>
+                                        </span>
+                                    </div>
+                                    <div class="ml-auto">
+                                        <span class="text-muted">
+                                                <a href="{% url 'web007:login_sms' %}" class="text-muted" style="text-decoration:none;color: #0033ff!important;">短信登录</a>
+                                        </span>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <!--展示从后端返回的错误信息-->
+    <div style="display: none">
+        {% if form.errors %}
+            <!-- 如果有错误，只显示每个字段的第一个错误 -->
+            {% for field, errors in form.errors.items %}
+                {% if errors %}
+                    <ul>
+                        <li id='error-message-li'>{{ errors.0 }}</li> <!-- 这里显示第一个错误 -->
+                    </ul>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        //-----------------------错误信息函数定义------------------------
+        document.addEventListener('DOMContentLoaded', function () {
+            const errorMessageDiv = document.getElementById('error-message');
+            const errorContainer = document.getElementById('errorContainer');
+            const errMessage = document.getElementById('error-message-li').textContent;
+            errorMessageDiv.textContent = '';
+
+            function isShowErrorMessage() {
+                if (errMessage) {
+                    errorMessageDiv.textContent = errMessage;
+                    showErrorMessage();
+                }
+            }
+
+            isShowErrorMessage();
+
+            // 显示错误提示的函数
+            function showErrorMessage() {
+                errorContainer.style.visibility = 'visible';
+            }
+
+            // 隐藏错误提示的函数
+            function hideErrorMessage() {
+                errorContainer.style.visibility = 'hidden';
+            }
+
+        //-----------------------隐藏错误信息DIV------------------------
+            errorContainer.addEventListener('click', function (event) {
+                    hideErrorMessage();
+                });
+
+
+            // 点击验证码图片更新图片
+        })
+        function refreshCaptcha() {
+            // 获取验证码图片的DOM元素
+            let captchaImage = document.getElementById('captchaImage');
+
+            // 创建一个新的Image对象
+            let newImage = new Image();
+
+            // 设置新的图片源，这将触发请求到服务器获取新的验证码图片。加入？是重新发送一个GET请求，防止浏览器缓存图片
+            newImage.src = '{% url "web007:image_code" %}?' + new Date().getTime(); // 添加时间戳防止浏览器缓存图片
+
+            // 当图片加载完成后，更新DOM中的src属性
+            newImage.onload = function() {
+                captchaImage.src = newImage.src;
+            };
+        }
+    </script>
+{% endblock %}
