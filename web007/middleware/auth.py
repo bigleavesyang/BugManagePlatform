@@ -9,6 +9,7 @@ class Tracer:
     def __init__(self):
         self.user = None
         self.price_strategy = None
+        self.project = None
 
 
 class AuthMiddleware(MiddlewareMixin):
@@ -31,12 +32,35 @@ class AuthMiddleware(MiddlewareMixin):
             return redirect('web007:login')
 
         # 获取用户权限额度, 按订单ID倒序排列，取最近一个就是付费订单
-        project_strategy = models.Order.objects.filter(user=user_obj, order_status=1).order_by('-id').first()
+        project_strategy = models.Order.objects.filter(user=user_obj, order_status=True).order_by('-id').first()
         current_time = datetime.datetime.now()
         # 如果用户策略是免费版，project_strategy为空，或者结束时间小于当前时间，则表明用户已经到期
         if not project_strategy or project_strategy.order_end_time < current_time:
             # 设置为免费版策略
-            request.tracer.price_strategy = models.ProjectStrategy.objects.filter(project_type=0,
-                                                                                  project_title='免费版').first()
+            request.tracer.price_strategy = models.ProjectStrategy.objects.filter(project_type=0).first()
+            return
         # 用户有额度，则直接保存到request中
         request.tracer.price_strategy = project_strategy
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        # 如果访问的不是后台管理页面，则直接放行
+        if not request.path_info.startswith('/manage/'):
+            return
+        # 通过网址/manage/<param>传进来的参数，获取项目id
+        project_id = view_kwargs.get('project_id')
+
+        my_project = models.ProjectDetail.objects.filter(project_creator=request.tracer.user, id=project_id).first()
+        # 如果访问的是我创建的项目，则直接放行
+        if my_project:
+            request.tracer.project = my_project
+            return
+        # 如果是我参与的项目，则直接放行
+        join_project = models.ProjectCollaborator.objects.filter(collaborator=request.tracer.user,
+                                                                 project_id=project_id).first()
+        # 项目参与表的project是ProjectDetail的对象。
+        if join_project:
+            request.tracer.project = join_project.project
+            return
+
+        # 如果以上条件都不符合，如果访问的是manage页面，那么是恶意访问，直接跳转
+        return redirect('web007:project_list')

@@ -6,7 +6,7 @@ from django.db import models
 
 class UserInfo(models.Model):
     # 用户名可以被索引，增加搜索速度
-    username = models.CharField(verbose_name='用户名', max_length=20,db_index=True)
+    username = models.CharField(verbose_name='用户名', max_length=20, db_index=True)
     mobile_phone = models.CharField(verbose_name='手机号', max_length=11)
     email = models.EmailField(verbose_name='邮箱', max_length=32)
     password = models.CharField(verbose_name='密码', max_length=64)
@@ -20,7 +20,7 @@ class ProjectStrategy(models.Model):
         (2, '其他')
     )
     # 项目分类(收费，免费)
-    project_type = models.SmallIntegerField(verbose_name='项目分类', choices=category_choices,default=2)
+    project_type = models.SmallIntegerField(verbose_name='项目分类', choices=category_choices, default=0)
     # 项目分类名称
     project_title = models.CharField(verbose_name='项目分类标题', max_length=32)
     # 项目价格
@@ -34,13 +34,13 @@ class ProjectStrategy(models.Model):
     # 每个项目文件最大容量
     project_max_file = models.PositiveIntegerField(verbose_name='每个项目文件最大容量')
     # 项目创建时间 ,auto_now是每次自动保存当前时间,auto_now_add是只保存第一次自动保存当前时间
-    project_create_time = models.DateTimeField(verbose_name='项目创建时间',auto_now_add=True)
+    project_create_time = models.DateTimeField(verbose_name='项目创建时间', auto_now_add=True)
 
 
 # 交易表
 class Order(models.Model):
     # 订单号
-    order_number = models.CharField(verbose_name='订单号', max_length=64,unique=True,db_index=True)
+    order_number = models.CharField(verbose_name='订单号', max_length=64, unique=True, db_index=True)
     # 交易状态
     order_status = models.BooleanField(verbose_name='交易状态', default=False)
     # 用户编号
@@ -52,24 +52,23 @@ class Order(models.Model):
     # 购买年限
     order_year = models.PositiveIntegerField(verbose_name='购买年限')
     # 支付时间
-    order_pay_time = models.DateTimeField(verbose_name='支付时间',null=True,blank=True)
+    order_pay_time = models.DateTimeField(verbose_name='支付时间', null=True, blank=True)
     # 结束时间
-    order_end_time = models.DateTimeField(verbose_name='结束时间',null=True,blank=True)
+    order_end_time = models.DateTimeField(verbose_name='结束时间', null=True, blank=True)
     # 创建时间
-    order_create_time = models.DateTimeField(verbose_name='创建时间',auto_now_add=True)
-
+    order_create_time = models.DateTimeField(verbose_name='创建时间', auto_now_add=True)
 
 
 # 项目详情表
 class ProjectDetail(models.Model):
     COLOR_CHOICES = (
-        (1, "#56b8eb"),  # 56b8eb
-        (2, "#f28033"),  # f28033
-        (3, "#ebc656"),  # ebc656
-        (4, "#a2d148"),  # a2d148
-        (5, "#20BFA4"),  # #20BFA4
-        (6, "#7461c2"),  # 7461c2,
-        (7, "#20bfa3"),  # 20bfa3,
+        (1, "primary"),  # 深蓝
+        (2, "secondary"),  # 灰色
+        (3, "success"),  # 绿色
+        (4, "danger"),  # 红色
+        (5, "warning"),  # 黄色
+        (6, "info"),  # 浅蓝
+        (7, "dark"),  # 黑色
     )
     # 项目名称
     project_name = models.CharField(verbose_name='项目名称', max_length=32)
@@ -78,13 +77,13 @@ class ProjectDetail(models.Model):
     # 项目创建人编号
     project_creator = models.ForeignKey(to='UserInfo', on_delete=models.CASCADE)
     # 项目参与人数
-    project_collaborator = models.PositiveIntegerField(verbose_name='项目参与人数')
+    project_collaborator = models.PositiveIntegerField(verbose_name='项目参与人数', default=1)
     # 项目颜色
     project_color = models.SmallIntegerField(verbose_name='项目颜色', choices=COLOR_CHOICES, default=1)
     # 星标
     project_star = models.BooleanField(verbose_name='星标', default=False)
     # 已使用空间
-    project_used_space = models.PositiveIntegerField(verbose_name='已使用空间',default=0)
+    project_used_space = models.PositiveIntegerField(verbose_name='已使用空间', default=0)
 
 
 # 项目参与表
@@ -96,7 +95,22 @@ class ProjectCollaborator(models.Model):
     # 星标（对于参与人是否是星标项目）
     collaborator_star = models.BooleanField(verbose_name='星标', default=False)
     # 参与时间
-    collaborator_time = models.DateTimeField(verbose_name='参与时间',auto_now_add=True)
+    collaborator_time = models.DateTimeField(verbose_name='参与时间', auto_now_add=True)
 
 
+# wiki文档项目表
+class Wiki(models.Model):
+    # 项目编号
+    project = models.ForeignKey(to='ProjectDetail', on_delete=models.CASCADE)
+    # 文档标题
+    wiki_title = models.CharField(verbose_name='标题', max_length=32, db_index=True)
+    # 文档内容
+    wiki_content = models.TextField(verbose_name='内容')
+    # 创建时间
+    parent = models.ForeignKey(verbose_name='父文章', to='self', on_delete=models.CASCADE, null=True, blank=True,
+                               related_name='children')
 
+    depth = models.PositiveIntegerField(verbose_name='深度', default=1)
+    # 改写打印时打印wiki标题。
+    def __str__(self):
+        return self.wiki_title

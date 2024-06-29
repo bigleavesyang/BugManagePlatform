@@ -1,0 +1,146 @@
+{% extends 'web007/layout/manage.html' %}
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'editor.md/css/editormd.min.css' %}">
+    <style>
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .card-body .document_menu {
+            height: 100vh;
+            border-right: 1px solid #dddddd;
+        }
+
+        .card-body .document_content {
+            height: 100vh;
+            border-left: 1px solid #dddddd;
+            margin-left: -1px;
+            text-align: center;
+        }
+
+        #list-group {
+            border-right: 1px solid #dddddd;
+            min-height: 500px;
+        }
+
+        #list-group ul {
+            padding-left: 15px;
+        }
+
+        #list-group ul a {
+            display: block;
+            padding: 5px 0;
+        }
+
+    </style>
+{% endblock %}
+
+{% block title %}文章展示{% endblock %}
+
+{% block content %}
+    <div class="container-fluid" style="margin-top: 80px">
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <i class="fa fa-book fa-lg" style="margin-right: 10px"></i><h6
+                        style="display: inline-block">{{ request.tracer.project.project_name }}</h6>
+                </div>
+                {% if wiki_project %}
+                    <div>
+                        <button class="btn btn-primary btn-sm"
+                                onclick="location.href='{% url 'web007:wiki_add' project_id=request.tracer.project.id %}'">
+                            <i class="fa fa-plus-circle" style="margin-right: 10px"></i>添加文档
+                        </button>
+                        <button class="btn btn-success btn-sm"
+                                onclick="location.href='{% url 'web007:wiki_edit' project_id=request.tracer.project.id wiki_id=wiki_project.id %}'">
+                            <i class="fa fa-edit" style="margin-right: 10px"></i>修改文档
+                        </button>
+                        <button class="btn btn-danger btn-sm"
+                                onclick="location.href='{% url 'web007:wiki_del' project_id=request.tracer.project.id wiki_id=wiki_project.id %}'">
+                            <i class="fa fa-trash" style="margin-right: 10px"></i>删除文档
+                        </button>
+                    </div>
+                {% else %}
+                    <button class="btn btn-primary btn-sm"
+                            onclick="location.href='{% url 'web007:wiki_add' project_id=request.tracer.project.id %}'">
+                        <i class="fa fa-plus-circle" style="margin-right: 10px"></i>添加文档
+                    </button>
+                {% endif %}
+            </div>
+            <div class="card-body" style="display:flex;padding: 0">
+                <div class="document_menu col-sm-3">
+                    <ul id="list-group">
+                        <!--菜单展示部分，由ajax完成-->
+                    </ul>
+                </div>
+                <div class="document_content col-sm-9" style="margin-top: 40px">
+                    {% if wiki_project %}
+                        <div id="previewMarkdown">
+                            <textarea>{{ wiki_project.wiki_content }}</textarea>
+                        </div>
+                    {% else %}
+                        <h2>《{{ request.tracer.project.project_name }}》wiki文档库</h2>
+                        <a href="{% url 'web007:wiki_add' project_id=request.tracer.project.id %}"><i
+                                class="fa fa-plus-circle" style="margin-right: 5px"></i>新建文档</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+        <script src="{% static 'editor.md/editormd.min.js' %}"></script>
+    <script src="{% static 'editor.md/lib/marked.min.js' %}"></script>
+    <script src="{% static 'editor.md/lib/prettify.min.js' %}"></script>
+    <script src="{% static 'editor.md/lib/raphael.min.js' %}"></script>
+    <script src="{% static 'editor.md/lib/underscore.min.js' %}"></script>
+    <script src="{% static 'editor.md/lib/sequence-diagram.min.js' %}"></script>
+    <script src="{% static 'editor.md/lib/flowchart.min.js' %}"></script>
+    <script src="{% static 'editor.md/lib/jquery.flowchart.min.js' %}"></script>
+    <script>
+        // 定义初始化的URL地址。
+        let wikiDefaultUrl = "{% url 'web007:wiki' project_id=request.tracer.project.id %}";
+        $(function () {
+            initCatalog();
+            // 初始化MD的文本的展示
+            initPreviewMarkdown();
+        })
+
+        function initPreviewMarkdown() {
+                editormd.markdownToHTML("previewMarkdown", {
+                // 避免被注入代码攻击
+                htmlDecode: "style,script,iframe"
+            });
+        }
+
+
+        function initCatalog() {
+            $.ajax({
+                url: "{% url 'web007:wiki_catalog' project_id=request.tracer.project.id %}",
+                type: "GET",
+                dataType: 'json',
+                success: function (res) {
+                    $.each(res.data, function (index, item) {
+                        let href = wikiDefaultUrl + '?wiki_id=' + item.id;
+                        // 创建li标签，并添加到ul文章列表中，同时创建自己下面有可能出现的子目录。
+                        let li = $('<li>').attr('id', 'id_' + item.id).append($('<a>').attr('href', href).text(item.wiki_title)).append($('<ul>'));
+                        if (res.status) {
+                            // 判断当前目录是否有父级目录，如果没有则直接添加到ul中。
+                            if (!item.parent_id) {
+                                $('#list-group').append(li);
+                            } else {// 如果有父级目录，则找到父级目录的ul标签，添加到里面。
+                                $('#id_' + item.parent_id).children('ul').append(li);
+                            }
+                        } else {
+                            alert('获取目录失败')
+                        }
+                    })
+                }
+            })
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends 'web007/layout/manage.html' %}
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'editor.md/css/editormd.min.css' %}" />
+    <style>
+        .card {
+            height: 900px;
+        }
+        .card-header {
+            height: 60px;
+            display: flex;
+            text-align: center;
+            justify-content: space-between;
+        }
+        .card-body .document_menu {
+            height: 835px;
+            border-right: 1px solid #dddddd;
+        }
+        .card-body .document_content {
+            display: flex;
+            justify-content: center;
+            height: 835px;
+            border-left: 1px solid #dddddd;
+            margin-left: -1px;
+        }
+
+            #list-group {
+                border-right: 1px solid #dddddd;
+                min-height: 500px;
+            }
+
+        #list-group ul {
+            padding-left: 15px;
+        }
+
+        #list-group ul a {
+            display: block;
+            padding: 5px 0;
+        }
+        /* 解决editor md全屏被导航栏挡住的问题。*/
+        .editormd-fullscreen{
+            z-index: 1001;
+        }
+
+    </style>
+{% endblock %}
+
+{% block title %}文章添加修改{% endblock %}
+
+{% block content %}
+    <div class="container-fluid" style="margin-top: 80px">
+        <div class="card">
+  <div class="card-header">
+      <div>
+          <i class="fa fa-book fa-lg" style="margin-right: 10px"></i><h6 style="display: inline-block">{{ request.tracer.project.project_name }}</h6>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="location.href='{% url 'web007:wiki_add' project_id=request.tracer.project.id %}'"><i class="fa fa-plus-circle" style="margin-right: 10px"></i>添加文档</button>
+  </div>
+  <div class="card-body" style="display:flex;padding: 0">
+    <div class="document_menu col-sm-3">
+        <ul id="list-group">
+            <!--菜单展示部分，由ajax完成-->
+        </ul>
+    </div>
+    <div class="document_content col-sm-9" style="margin-top: 20px">
+         <div style="width:80%;max-width: 80%;height: 90%;">
+            <form method="post">
+            {% csrf_token %}
+            {% for filed in form %}
+                {% if filed.name == 'wiki_content' %}
+                    <div class="mb-3">
+                        <label for="{{ filed.id_for_label }}" class="form-label">{{ filed.label }}</label>
+                            <div id="editor">
+                                {{ filed }}
+                            </div>
+                       <span class="errMsg">{{ filed.errors.0 }}</span>
+                  </div>
+              {% else %}
+                    <div class="mb-3">
+                <label for="{{ filed.id_for_label }}" class="form-label">{{ filed.label }}</label>
+                {{ filed }}
+               <span class="errMsg">{{ filed.errors.0 }}</span>
+              </div>
+              {% endif %}
+
+            {% endfor %}
+            <button type="submit" class="btn btn-primary" style="margin-right: 20px">提交</button>
+            <button type="reset" class="btn btn-secondary">清空</button>
+            </form>
+         </div>
+    </div>
+  </div>
+</div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'editor.md/editormd.min.js' %}"></script>
+    <script>
+        // 定义初始化的URL地址。
+        let wikiDefaultUrl = "{% url 'web007:wiki' project_id=request.tracer.project.id %}";
+        $(function () {
+            initMdEditor();
+             // 初始化目录
+            initCatalog();
+        })
+
+
+        function initMdEditor() {
+            // md编辑器初始化
+             var editor = editormd("editor", {
+                // width: "100%",
+                height: 500,
+                // markdown: "请输入内容",     // dynamic set Markdown text
+                path : "{% static 'editor.md/lib/' %}"  // Autoload modules mode, codemirror, marked... dependents libs path
+            });
+        }
+
+        function initCatalog() {
+            $.ajax({
+                url: "{% url 'web007:wiki_catalog' project_id=request.tracer.project.id %}",
+                type: "GET",
+                dataType: 'json',
+                success: function (res) {
+                    $.each(res.data, function (index, item) {
+                        let href = wikiDefaultUrl + '?wiki_id=' + item.id;
+                        // 创建li标签，并添加到ul文章列表中，同时创建自己下面有可能出现的子目录。
+                        let li = $('<li>').attr('id', 'id_' + item.id).append($('<a>').attr('href', href).text(item.wiki_title)).append($('<ul>'));
+                        if (res.status) {
+                            // 判断当前目录是否有父级目录，如果没有则直接添加到ul中。
+                            if (!item.parent_id) {
+                                $('#list-group').append(li);
+                            } else {// 如果有父级目录，则找到父级目录的ul标签，添加到里面。
+                                $('#id_' + item.parent_id).children('ul').append(li);
+                            }
+                        } else {
+                            alert('获取目录失败')
+                        }
+                    })
+                }
+            })
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,5 @@
+{% for item in url_list %}
+    <li class="nav-item">
+        <a class="nav-link {% if item.class %}{{ item.class }}{% endif %}" aria-current="page" href="{{ item.url }}">{{ item.title }}</a>
+    </li>
+{% endfor %}

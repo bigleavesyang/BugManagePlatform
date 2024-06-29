@@ -7,7 +7,7 @@ from app01 import models as app01_models
 
 class RegisterModelForm(forms.ModelForm):
     mobile_phone = forms.CharField(
-        label='手机号', max_length=11, validators=[RegexValidator('^1[3-9]\d{9}$', '手机号格式错误')]
+        label='手机号', max_length=11, validators=[RegexValidator('^1[3-9]\\d{9}$', '手机号格式错误')]
     )
     password = forms.CharField(
         label='密码', max_length=16, widget=forms.PasswordInput()

@@ -1,1 +1,207 @@
 {% extends 'web007/layout/manage.html' %}
+
+{% block css %}
+    <style>
+        .card {
+            margin-bottom: 20px;
+        }
+        .list-group .list-group-item {
+            display: flex;
+            flex-direction: row;
+            justify-content: left;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        .list-group .list-group-item div {
+            margin-right: 13px;
+        }
+        .list-group .list-group-item a {
+            text-decoration: none;
+        }
+        .card-footer .info {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid" style="margin-top: 80px">
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop" style="margin-bottom: 20px">
+            <i class="fa fa-plus-circle fa-lg" style="margin-right: 10px"></i>新建项目
+        </button>
+
+
+        <!--项目主体展示-->
+        <!--星标项目-->
+        <div class="card">
+          <div class="card-header">
+              <i class="fa fa-star fa-lg" aria-hidden="true" style="margin-right: 10px"></i>
+            星标项目
+          </div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+                {% for item in projects_dict.star %}
+                <div class="card border-{{ item.value.get_project_color_display }} mb-3" style="height:16rem;width: 18rem;max-width: 18rem;max-height: 16rem;">
+                  <div class="card-header bg-transparent border-{{ item.value.get_project_color_display }}">{{ item.value.project_name }}</div>
+                  <a href="{% url 'web007:dashboard' project_id=item.value.id%}" class="card-body">
+                      <div class="card-body text-{{ item.value.get_project_color_display }}">
+                        <p class="card-text">{{  item.value.project_description }}</p>
+                      </div>
+                  </a>
+                  <div class="card-footer bg-transparent border-{{ item.value.get_project_color_display }}">
+                      <div class="info">
+                            <div>
+                                <a href="{% url 'web007:project_unstar' project_type=item.type project_id=item.value.id %}">
+                                    <i class="fa fa-star" aria-hidden="true" style="color: orange"></i>
+                                </a>
+                                <span>{{ item.value.project_creator.username }}</span>
+                            </div>
+                            <div>
+                                <i class="fa fa-user-o" aria-hidden="true" ></i>
+                                <span>{{ item.value.project_collaborator }}</span>
+                            </div>
+                        </div>
+                    </div>
+                  </div>
+                {% endfor %}
+            </li>
+          </ul>
+        </div>
+        <!--我创建的项目-->
+        <div class="card">
+          <div class="card-header">
+              <i class="fa fa-list fa-lg" aria-hidden="true" style="margin-right: 10px"></i>
+            我创建的项目
+          </div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+                {% for item in projects_dict.my %}
+                <div class="card border-{{ item.get_project_color_display }} mb-3" style="height:16rem;width: 18rem;max-width: 18rem;max-height: 16rem;">
+                  <div class="card-header bg-transparent border-{{ item.get_project_color_display }}">{{ item.project_name }}</div>
+                    <a href="{% url 'web007:dashboard' project_id=item.id%}" class="card-body">
+                      <div class="card-body text-{{ item.get_project_color_display }}">
+                        <p class="card-text">{{  item.project_description }}</p>
+                      </div>
+                    </a>
+                  <div class="card-footer bg-transparent border-{{ item.get_project_color_display }}">
+                      <div class="info">
+                            <div>
+                                <a href="{% url 'web007:project_star' project_type='my' project_id=item.id %}">
+                                    <i class="fa fa-star" aria-hidden="true" style="color: #d5d5d5"></i>
+                                </a>
+                                <span>{{ item.project_creator.username }}</span>
+                            </div>
+                            <div>
+                                <i class="fa fa-user-o" aria-hidden="true"></i>
+                                <span>{{ item.project_collaborator }}</span>
+                            </div>
+                        </div>
+                    </div>
+                  </div>
+                {% endfor %}
+            </li>
+          </ul>
+        </div>
+        <!--我参与的项目-->
+        <div class="card">
+          <div class="card-header">
+              <i class="fa fa-user-o fa-lg" aria-hidden="true" style="margin-right: 10px"></i>
+            我参与的项目
+          </div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+                {% for item in projects_dict.join %}
+                <div class="card border-{{ item.get_project_color_display }} mb-3" style="height:16rem;width: 18rem;max-width: 18rem;max-height: 16rem;">
+                  <div class="card-header bg-transparent border-{{ item.get_project_color_display }}">{{ item.project_name }}</div>
+                  <a href="{% url 'web007:dashboard' project_id=item.id%}" class="card-body">
+                  <div class="card-body text-{{ item.get_project_color_display }}">
+                    <p class="card-text">{{  item.project_description }}</p>
+                  </div>
+                  </a>
+                  <div class="card-footer bg-transparent border-{{ item.get_project_color_display }}">
+                      <div class="info">
+                            <div>
+                                <a href="{% url 'web007:project_star' project_type='join' project_id=item.id %}">
+                                    <i class="fa fa-star" aria-hidden="true" style="color: #d5d5d5"></i>
+                                </a>
+                                <span>{{ item.project_creator.username }}</span>
+                            </div>
+                            <div>
+                                <i class="fa fa-user-o" aria-hidden="true"></i>
+                                <span>{{ item.project_collaborator }}</span>
+                            </div>
+                        </div>
+                    </div>
+                  </div>
+                {% endfor %}
+            </li>
+          </ul>
+        </div>
+    
+
+        <!-- 新建项目弹出窗口 -->
+        <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+             aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">新建项目</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addForm">
+                        {% csrf_token %}
+                            {% for filed in form %}
+                                <div class="mb-3">
+                                    <!--后台表单会为每个表单生成一个id_字段名的前端id属性-->
+                                    <label for="{{ filed.id_for_label }}" class="form-label">{{ filed.label }}</label>
+                                    {{ filed }}
+                                    <span class="errMsg"></span>
+                                </div>
+                            {% endfor %}
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" id="btnSubmit">提交</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+    $(function () {
+        bindSubmit(); // 注意这里我移除了括号之间的空格，但这不是必须的
+    })
+
+    function bindSubmit() {
+        $('#btnSubmit').click(function () {
+            $.ajax({ // 注意这里是大括号 {} 而不是圆括号 ()
+                url: '{% url 'web007:project_list' %}', // 使用冒号:作为属性赋值
+                type: 'post', // 使用冒号:作为属性赋值
+                data: $('#addForm').serialize(), // 使用冒号:作为属性赋值
+                dataType: 'json', // 使用冒号:作为属性赋值
+                success: function (res) { // 使用冒号:作为属性赋值
+                    if (res.status) {
+                        location.reload();
+                    } else {
+                        console.log(res);
+                        $.each(res.error, function (key, value) {
+                            $('#id_' + key).next().text(value[0]); // 假设每个字段后面都有一个用于显示错误消息的DOM元素
+                        });
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) { // 可选：添加错误处理函数
+                    console.error("AJAX请求失败: " + textStatus, errorThrown);
+                }
+            });
+        });
+    }
+</script>
+{% endblock %}

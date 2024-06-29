@@ -1,4 +1,5 @@
 {% load static %}
+{% load NavBarMenu %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,8 +8,16 @@
     <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static '/font-awesome/css/font-awesome.min.css' %}">
     <style>
+        .navbar {
+            z-index: 999;
+        }
         .navbar-nav .nav-item{
             margin-right: 20px;
+        }
+        .errMsg {
+            color: red;
+            position: absolute;
+            font-size: 13px;
         }
     </style>
     {% block css %}{% endblock %}
@@ -25,11 +34,13 @@
               <button class="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 项目
               </button>
-              <ul class="dropdown-menu">
-                <li><button class="dropdown-item" type="button">Action</button></li>
-                <li><button class="dropdown-item" type="button">Another action</button></li>
-                <li><button class="dropdown-item" type="button">Something else here</button></li>
-              </ul>
+              {% nav_bar_menu request %}
+               <!--获取项目后展示-->
+               {% if request.tracer.project %}
+               <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    {% manage_list request %}
+               </ul>
+            {% endif %}
             </div>
             <ul class="navbar-nav">
                 <li class="nav-item">
@@ -40,7 +51,6 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="#">
-                    <!-- 假设你使用Font Awesome图标 -->
                     日历
                   </a>
                 </li>
@@ -60,7 +70,7 @@
                  {{   request.tracer.user.username }}
               </button>
               <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="{% url 'web007:login' %}">官网</a></li>
+                <li><a class="dropdown-item" href="{% url 'web007:index' %}">官网</a></li>
                 <li><a class="dropdown-item" href="#">个人中心</a></li>
                 <li><a class="dropdown-item" href="{% url 'web007:logout' %}">退出</a></li>
               </ul>
@@ -68,7 +78,7 @@
         </div>
     </div>
 </nav>
-{% block content %}{% endblock %}
+    {% block content %}{% endblock %}
     <script src="{% static 'bootstrap/js/popper.min.js' %}"></script>
     <script src = '{% static 'bootstrap/js/jquery.min.js' %}'></script>
     <script src = '{% static 'bootstrap/js/bootstrap.min.js' %}'></script>

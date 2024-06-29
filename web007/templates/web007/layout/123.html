@@ -1,56 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Position Example</title>
+<style>
+    .relative-container {
+        position: relative;
+        width: 300px;
+        height: 200px;
+        background-color: lightgray;
+    }
+
+    .absolute-box {
+        position: absolute;
+        top: 50px;
+        left: 50px;
+        width: 100px;
+        height: 100px;
+        background-color: red;
+    }
+
+    .relative-box {
+        position: relative;
+        top: 20px;
+        left: 20px;
+        width: 100px;
+        height: 100px;
+        background-color: blue;
+    }
+</style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">Tracer平台</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="#">产品功能</a>
+
+<div class="relative-container">
+    <div class="absolute-box">Absolute Positioned</div>
+    <div class="relative-box">Relative Positioned</div>
+</div>
+
+
+<li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="{% url 'web007:dashboard' project_id=request.tracer.project.id %}">概览</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">企业方案</a>
+                    <a class="nav-link" href="{% url 'web007:issues' project_id=request.tracer.project.id %}">问题</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">帮助文档</a>
+                    <a class="nav-link" href="{% url 'web007:statistics' project_id=request.tracer.project.id %}">统计</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">价格</a>
-                </li>
-            </ul>
-            {% if request.tracer %}
-                <!--用户登录后展示-->
-                <div class="dropdown" style="margin-right: 20px">
-                  <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                     {{   request.tracer.username }}
-                  </button>
-                  <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#">Action</a></li>
-                    <li><a class="dropdown-item" href="#">Another action</a></li>
-                    <li><a class="dropdown-item" href="#">Something else here</a></li>
-                  </ul>
-                </div>
-                <button onclick="window.location.href='{% url 'web007:logout' %}'" class="btn btn-outline-light" type="button">退出</button>
-            {% else %}
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item" style='margin-right: 10px'>
-                    <a class="nav-link" href="#">登录</a>
+                    <a class="nav-link" href="{% url 'web007:file' project_id=request.tracer.project.id %}">文件</a>
                 </li>
                 <li class="nav-item">
-                    <button class="btn btn-outline-light" type="button">用户注册</button>
+                    <a class="nav-link" href="{% url 'web007:wiki' project_id=request.tracer.project.id %}">wiki</a>
                 </li>
-            </ul>
-            {% endif %}
-        </div>
-    </div>
-</nav>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'web007:setting' project_id=request.tracer.project.id %}">设置</a>
+                </li>
 </body>
 </html>
+
