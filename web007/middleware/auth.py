@@ -64,3 +64,4 @@ class AuthMiddleware(MiddlewareMixin):
 
         # 如果以上条件都不符合，如果访问的是manage页面，那么是恶意访问，直接跳转
         return redirect('web007:project_list')
+

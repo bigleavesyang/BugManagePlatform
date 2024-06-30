@@ -2,6 +2,8 @@ from django.shortcuts import render, HttpResponse, redirect
 from django.http import JsonResponse
 from web007.forms.project import ProjectModelForm
 from web007 import models
+from utils.tencent import cos
+import time
 
 
 def project_list(request):
@@ -41,6 +43,11 @@ def project_list(request):
 
     form = ProjectModelForm(request, data=request.POST)
     if form.is_valid():
+        #创建项目存储文件的桶
+        bucket_name =request.tracer.user.mobile_phone + '-' + str(int(time.time()))+'-1327273828'
+        # 在云端创建一个存储桶
+        cos.create_bucket(bucket_name)
+        form.instance.project_bucket = bucket_name
         form.instance.project_creator = request.tracer.user
         form.save()
         return JsonResponse({'status': True})

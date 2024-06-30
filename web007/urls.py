@@ -37,6 +37,7 @@ urlpatterns = [
         path('wiki/catelog/',wiki.catalog, name='wiki_catalog'),
         path('wiki/edit/<int:wiki_id>/',wiki.wiki_edit, name='wiki_edit'),
         path('wiki/delete/<int:wiki_id>/', wiki.wiki_del, name='wiki_del'),
+        path('wiki/upload/', wiki.upload_image, name='wiki_upload'),
 
         path('file/', manage.file, name='file'),
         path('statistics/', manage.statistics, name='statistics'),

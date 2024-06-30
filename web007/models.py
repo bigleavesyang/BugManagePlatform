@@ -84,6 +84,11 @@ class ProjectDetail(models.Model):
     project_star = models.BooleanField(verbose_name='星标', default=False)
     # 已使用空间
     project_used_space = models.PositiveIntegerField(verbose_name='已使用空间', default=0)
+    # 存储桶
+    project_bucket = models.CharField(verbose_name='存储桶', max_length=64)
+    # 存储桶所在地
+    project_bucket_location = models.CharField(verbose_name='存储桶所在地', max_length=32,default='ap-beijing')
+
 
 
 # 项目参与表

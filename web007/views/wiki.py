@@ -1,8 +1,13 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+
 from web007 import models
 from web007.forms.wiki import WikiForm
+
+from utils import data_encrypt
+from utils.tencent import cos
 
 
 def index(request, project_id):
@@ -55,10 +60,10 @@ def wiki_edit(request, project_id, wiki_id):
         # 获取当前项目的wiki文章
         # 把wiki对象传给form，让form自动渲染页面
     if request.method == 'GET':
-        form = WikiForm(request,instance=wiki)
+        form = WikiForm(request, instance=wiki)
         return render(request, 'web007/wiki-add.html', {'form': form})
 
-    form = WikiForm(request,data=request.POST, instance=wiki)
+    form = WikiForm(request, data=request.POST, instance=wiki)
     if form.is_valid():
         # 判断文章是否有父节点
         if form.instance.parent:
@@ -80,3 +85,30 @@ def wiki_del(request, project_id, wiki_id):
     models.Wiki.objects.filter(project=request.tracer.project, id=wiki_id).first().delete()
     url = reverse('web007:wiki', kwargs={'project_id': project_id})
     return redirect(url)
+
+
+# markdown编辑器上传图片时提交用的post,所以这里需要django的csrf_exempt装饰器来取消csrf的验证
+@csrf_exempt
+def upload_image(request, project_id):
+    # 用markdown编辑器上传图片，返回图片的url和传输提示
+    result = {
+        'success': 0,
+        'message': None,
+        'url': None
+    }
+    # 获取图片文件
+    image_obj = request.FILES.get('editormd-image-file')
+    if not image_obj:
+        result['message'] = '没有图片'
+        return JsonResponse(result)
+    # 获取图片后缀名
+    image_ext = image_obj.name.rsplit('.')[-1]
+    image_name = data_encrypt.uid(request.tracer.user.mobile_phone) + '.' + image_ext
+    url = cos.upload_file(image_obj, image_name, request.tracer.project.project_bucket)
+    result['success'] = 1
+    result['message'] = '上传成功'
+    result['url'] = url
+    response = JsonResponse(result)
+    # 在响应头中解决框架不允许嵌套的问题，默认是DENY
+    response['X-Frame-Options'] = 'SAMEORIGIN'
+    return response
