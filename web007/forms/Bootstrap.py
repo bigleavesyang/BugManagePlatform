@@ -2,6 +2,7 @@ from django import forms
 
 
 class BootStrapMixin(forms.Form):
+    # 不运用bootstrap的字段
     bootstrap_class_exclude = []
 
     def add_bootstrap_class(self):

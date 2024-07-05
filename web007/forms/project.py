@@ -32,7 +32,6 @@ class ProjectModelForm(forms.ModelForm, BootStrapMixin):
             'danger': '红色',
             'warning': '黄色',
             'info': '浅蓝色',
-            'light': '白色',
             'dark': '黑色'
         }
         # 列表套元组，初始颜色

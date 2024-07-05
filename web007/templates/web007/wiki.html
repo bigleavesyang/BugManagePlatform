@@ -93,7 +93,7 @@
 {% endblock %}
 
 {% block js %}
-        <script src="{% static 'editor.md/editormd.min.js' %}"></script>
+    <script src="{% static 'editor.md/editormd.min.js' %}"></script>
     <script src="{% static 'editor.md/lib/marked.min.js' %}"></script>
     <script src="{% static 'editor.md/lib/prettify.min.js' %}"></script>
     <script src="{% static 'editor.md/lib/raphael.min.js' %}"></script>
@@ -110,14 +110,15 @@
             initPreviewMarkdown();
         })
 
+        // 初始化MD的文本展示
         function initPreviewMarkdown() {
                 editormd.markdownToHTML("previewMarkdown", {
                 // 避免被注入代码攻击
                 htmlDecode: "style,script,iframe"
             });
-        }
+    }
 
-
+        // 初始化文档目录
         function initCatalog() {
             $.ajax({
                 url: "{% url 'web007:wiki_catalog' project_id=request.tracer.project.id %}",

@@ -87,8 +87,7 @@ class ProjectDetail(models.Model):
     # 存储桶
     project_bucket = models.CharField(verbose_name='存储桶', max_length=64)
     # 存储桶所在地
-    project_bucket_location = models.CharField(verbose_name='存储桶所在地', max_length=32,default='ap-beijing')
-
+    project_bucket_location = models.CharField(verbose_name='存储桶所在地', max_length=32, default='ap-beijing')
 
 
 # 项目参与表
@@ -116,6 +115,37 @@ class Wiki(models.Model):
                                related_name='children')
 
     depth = models.PositiveIntegerField(verbose_name='深度', default=1)
+
     # 改写打印时打印wiki标题。
     def __str__(self):
         return self.wiki_title
+
+
+# 文件表，字段：project(外键连接ProjectDetail表),file_name(文件名),file_size(文件大小),file_type(文件类型),parent(父目录),key(新文件名)
+class File(models.Model):
+    file_type = (
+        (1, '文件'),
+        (2, '目录')
+    )
+    # 项目编号
+    project = models.ForeignKey(to='ProjectDetail', on_delete=models.CASCADE)
+    # 文件名
+    file_name = models.CharField(verbose_name='文件名', max_length=128, db_index=True)
+    # 文件大小
+    file_size = models.PositiveIntegerField(verbose_name='文件大小', null=True, blank=True)
+    # 文件类型
+    file_type = models.SmallIntegerField(verbose_name='文件类型', choices=file_type, default=2)
+    # 文件路径,考虑到长目录名，所以使用路径长度也大一些
+    file_path = models.CharField(verbose_name='文件路径', max_length=255, null=True, blank=True)
+    # 父目录
+    parent = models.ForeignKey('self', verbose_name='父目录', on_delete=models.CASCADE, null=True, blank=True,
+                               related_name='children')
+    # 新文件名
+    key = models.CharField(verbose_name='新文件名', max_length=128)
+    # 改写文件人员，与用户表关联
+    user = models.ForeignKey(verbose_name='最近更新者', to=UserInfo, on_delete=models.CASCADE)
+    # 创建时间
+    file_update_time = models.DateTimeField(verbose_name='更新时间', auto_now_add=True)
+
+    def __str__(self):
+        return self.file_name

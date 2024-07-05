@@ -1,10 +1,250 @@
 {% extends 'web007/layout/manage.html' %}
 
-{% block css %}{% endblock %}
+{% block css %}
+    <style>
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-{% block content %}
-    文件
+        .card-header .right {
+            display: flex;
+            align-items: center;
+        }
+        /*子绝父相的定位*/
+        .card-header .right .upload input{
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 76px;
+            left: -2px;
+            overflow: hidden;
+        }
 
+        .card-body .table{
+            vertical-align: middle;
+        }
+    </style>
 {% endblock %}
 
-{% block js %}{% endblock %}
+{% block content %}
+    <div class="container-fluid" style="margin-top: 80px">
+        <!--卡片容器-->
+        <div class="card">
+            <!--卡片头部-->
+            <div class="card-header">
+                <div class="left">
+                    <i class="fa fa-home" style="margin-right: 6px"></i>
+                    <a href="{% url 'web007:file' project_id=request.tracer.project.id %}" style="margin-right: 6px">文件库</a>
+                    {% if folder_list %}
+                        {% for folder in folder_list %}
+                            <i class="fa fa-angle-right" style="margin: 0 6px"></i>
+                            <a href="{% url 'web007:file' project_id=request.tracer.project.id %}?folder={{ folder.folder_id }}" style="margin-right: 6px">{{ folder.folder_name }}</a>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div class="right">
+                    <!--这里用到了css的子绝父相定位-->
+                   <div class="btn btn-primary btn-sm upload" style="position: relative;margin-right: 8px" id="uploadFileBtn">
+                        <div><i class="fa fa-upload" aria-hidden="true"></i> 上传文件</div>
+                        <input type="file" multiple name="uploadFile" id="uploadFile">
+                    </div>
+                    <!-- Button trigger modal -->
+                    <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#addFolderModal" data-bs-whatever="新建文件夹">
+                         <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                        新建文件夹
+                    </button>
+                </div>
+            </div>
+            <!--卡片主体-->
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">名称</th>
+                        <th scope="col">文件大小</th>
+                        <th scope="col">更新者</th>
+                        <th scope="col">更新时间</th>
+                        <th scope="col">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for file_obj in file_list %}
+                    <tr>
+                        {% if file_obj.file_type == 1 %}
+                            <td>{{ file_obj.file_name }}</td>
+                            <td>{{ file_obj.file_size }}</td>
+                        {% else %}
+                            <td>
+                                <i class="fa fa-folder-open-o" style="margin-right: 3px"></i>
+                                <a href="{% url 'web007:file' project_id=request.tracer.project.id %}?folder={{ file_obj.id }}">{{ file_obj.file_name }}</a>
+                            </td>
+                            <td><i class="fa fa-folder"></i></td>
+                        {% endif %}
+                        <td>{{ file_obj.user.username }}</td>
+                        <td>{{ file_obj.file_update_time }}</td>
+                        <td>
+                            <!--点击修改文件夹用的也是添加文件夹的modal-->
+                            <!--通过自定义属性向js或者jquery传值-->
+                            <a href="" class='btn btn-primary btn-sm'
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#addFolderModal"
+                                   data-bs-whatever="修改文件夹"
+                                   data-name="{{ file_obj.file_name }}"
+                                   data-fid="{{ file_obj.id }}"
+                                   style="margin-right: 10px">
+                                <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                            </a>
+                            <a href="" class="btn btn-danger btn-sm"
+                                id="delFolderBtn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#delFolderModal"
+                                data-fid="{{ file_obj.id }}">
+                                <i class="fa fa-trash" aria-hidden="true"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新建文件弹出框 -->
+    <div class="modal fade" id="addFolderModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">新建文件夹</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="" id="folderForm">
+                    {% csrf_token %}
+                    <input type="text" class="d-none" id="fid" name="fid">
+                    <div class="modal-body">
+                        {% for field in form %}
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ filed.label }}</label>
+                            {{ field }}
+                            <span class="errMsg">{{ field.errors.0 }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="reset" class="btn btn-secondary">重置</button>
+                        <button type="button" class="btn btn-primary" id="folderFormSubmit">提交</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改文件夹弹出框 -->
+    <div class="modal fade" id='delFolderModal' tabindex="-1">
+        <div class="modal-dialog">
+            <div class="alert alert-danger" role="alert">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">删除目录</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p>这将会删除目录和目录下的所有文件！！！</p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary"
+                        id="deleteFolder">
+                        确定
+                    </button>
+                  </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        // 各种变量的定义
+        let DELETE_FOLDER_URL = "{% url 'web007:delete_folder' project_id=request.tracer.project.id %}";
+
+        $(function () {
+            bindFolderForm();
+            initFolderModel();
+            deleteFolder();
+        })
+
+
+        // 获取弹出新建文件夹的按钮，添加事件，重置模态框中的报错信息。
+        function initFolderModel() {
+            $('#addFolderModal').on('show.bs.modal', function (event){
+                // 获取触发模态框按钮时，模态框中各种属性值
+                let button = $(event.relatedTarget);
+                let modal = $(this);
+                // 弹出框标题展示
+                let description = button.data('bs-whatever');
+                // 获取按钮的自定义属性值data-fid和data-name
+                let fid = button.data('fid');
+                let name = button.data('name');
+                //设置添加和删除文件夹是弹出框标题
+                modal.find('.modal-title').text(description);
+                // 如果有fid,则表示修改文件夹，否则为新建文件夹,为表单数据赋值。
+                if (fid){
+                    modal.find('#id_file_name').val(name);
+                    modal.find('#fid').val(fid);
+                }else{
+                    modal.find('.errMsg').empty();
+                    $('#folderForm')[0].reset();
+                }
+            })
+            // 传入文件夹id给删除文件夹模态框
+            $('#delFolderModal').on('show.bs.modal', function (event) {
+                let button = $(event.relatedTarget);
+                let fid = button.data('fid');
+                // 获取删除文件夹模态框的按钮，给自定义属性fid赋值
+                $('#deleteFolder').attr('fid', fid);
+            })
+        }
+
+        function bindFolderForm() {
+            $('#folderFormSubmit').click(function () {
+                $.ajax({
+                    url: location.href,
+                    type: 'post',
+                    data: $('#folderForm').serialize(),
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res.status) {
+                            location.reload();
+                        } else {
+                            $.each(res.error, function (key, value) {
+                                $("#id_" + key).next().text(value[0]);
+                            })
+                        }
+                    }
+                })
+            })
+        }
+
+        // 删除文件夹
+        function deleteFolder() {
+            $("#deleteFolder").click(function () {
+                $.ajax({
+                    url:DELETE_FOLDER_URL,
+                    type: 'get',
+                    // 获取删除按钮的自定义属性值data-fid，把值传给后端。这个fid是文件夹的id
+                    data: {'fid':$(this).attr('fid')},
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res.status) {
+                            location.reload();
+                        }
+                    }
+                })
+            })
+        }
+    </script>
+{% endblock %}

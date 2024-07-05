@@ -4,6 +4,7 @@ from web007.views import project
 from web007.views import home
 from web007.views import manage
 from web007.views import wiki
+from web007.views import file
 
 urlpatterns = [
     # 用户模块
@@ -39,7 +40,11 @@ urlpatterns = [
         path('wiki/delete/<int:wiki_id>/', wiki.wiki_del, name='wiki_del'),
         path('wiki/upload/', wiki.upload_image, name='wiki_upload'),
 
-        path('file/', manage.file, name='file'),
+        # 文件路径相关
+        path('file/', file.file, name='file'),
+        path('file/delFolder/', file.del_folder, name='delete_folder'),
+
+
         path('statistics/', manage.statistics, name='statistics'),
         path('setting/',manage.setting, name='setting'),
     ]))
