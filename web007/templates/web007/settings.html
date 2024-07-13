@@ -1,0 +1,45 @@
+{% extends 'web007/layout/manage.html' %}
+
+{% block title %}管理页面{% endblock %}
+
+
+{% block css %}
+    <style>
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+{% endblock %}
+
+
+{% block content %}
+    <div class="container" style="margin-top: 80px">
+        <!--左侧站三个位置-->
+        <div class="col-sm-3" style="margin-right: 10px">
+            <div class="list-group">
+              <h5 class="list-group-item text-bg-primary">
+                个人中心
+              </h5>
+              <a href="#" class="list-group-item list-group-item-action">我的资料</a>
+              <a href="#" class="list-group-item list-group-item-action">修改密码</a>
+              <a href="{% url 'web007:settings_delete' project_id=request.tracer.project.id %}" class="list-group-item list-group-item-action">删除项目</a>
+            </div>
+        </div>
+
+        <!--右侧站九个位置-->
+        <div class="col-sm-9">
+            <div class="card">
+              <div class="card-header text-bg-primary">
+                  <i class="fa fa-address-card-o fa-lg" aria-hidden="true"style="margin-right: 10px"></i>我的资料
+              </div>
+              <div class="card-body ">
+                   <h4 style="text-align: center;">系统设置</h4>
+              </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block js %}{% endblock %}

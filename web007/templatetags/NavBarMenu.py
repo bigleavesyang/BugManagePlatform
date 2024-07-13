@@ -22,7 +22,7 @@ def manage_list(request):
         {'title': '统计', 'url': reverse('web007:statistics', kwargs={'project_id': request.tracer.project.id}), },
         {'title': 'wiki', 'url': reverse('web007:wiki', kwargs={'project_id': request.tracer.project.id}), },
         {'title': '文件', 'url': reverse('web007:file', kwargs={'project_id': request.tracer.project.id}), },
-        {'title': '设置', 'url': reverse('web007:setting', kwargs={'project_id': request.tracer.project.id}), },
+        {'title': '设置', 'url': reverse('web007:settings', kwargs={'project_id': request.tracer.project.id}), },
     ]
     for item in url_list:
         # 判断当前访问的url是否在导航栏菜单中，如果是就给active类

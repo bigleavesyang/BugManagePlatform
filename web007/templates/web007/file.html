@@ -1,4 +1,5 @@
 {% extends 'web007/layout/manage.html' %}
+{% load static %}
 
 {% block css %}
     <style>
@@ -12,8 +13,9 @@
             display: flex;
             align-items: center;
         }
+
         /*子绝父相的定位*/
-        .card-header .right .upload input{
+        .card-header .right .upload input {
             opacity: 0;
             position: absolute;
             top: 0;
@@ -23,13 +25,23 @@
             overflow: hidden;
         }
 
-        .card-body .table{
+        .card-body .table {
             vertical-align: middle;
+        }
+
+        #progressDiv {
+            position: fixed;
+            right: 2px;
+            bottom: 2px;
+            /*设置进度条太多的时候最大高度和滚动*/
+            max-height: 300px;
+            overflow-y: auto;
         }
     </style>
 {% endblock %}
 
 {% block content %}
+    <!--文件页面的起始渲染-->
     <div class="container-fluid" style="margin-top: 80px">
         <!--卡片容器-->
         <div class="card">
@@ -37,24 +49,27 @@
             <div class="card-header">
                 <div class="left">
                     <i class="fa fa-home" style="margin-right: 6px"></i>
-                    <a href="{% url 'web007:file' project_id=request.tracer.project.id %}" style="margin-right: 6px">文件库</a>
+                    <a href="{% url 'web007:file' project_id=request.tracer.project.id %}"
+                       style="margin-right: 6px">文件库</a>
                     {% if folder_list %}
                         {% for folder in folder_list %}
                             <i class="fa fa-angle-right" style="margin: 0 6px"></i>
-                            <a href="{% url 'web007:file' project_id=request.tracer.project.id %}?folder={{ folder.folder_id }}" style="margin-right: 6px">{{ folder.folder_name }}</a>
+                            <a href="{% url 'web007:file' project_id=request.tracer.project.id %}?folder={{ folder.folder_id }}"
+                               style="margin-right: 6px">{{ folder.folder_name }}</a>
                         {% endfor %}
                     {% endif %}
                 </div>
                 <div class="right">
                     <!--这里用到了css的子绝父相定位-->
-                   <div class="btn btn-primary btn-sm upload" style="position: relative;margin-right: 8px" id="uploadFileBtn">
+                    <div class="btn btn-primary btn-sm upload" style="position: relative;margin-right: 8px"
+                         id="uploadFileBtn">
                         <div><i class="fa fa-upload" aria-hidden="true"></i> 上传文件</div>
                         <input type="file" multiple name="uploadFile" id="uploadFile">
                     </div>
                     <!-- Button trigger modal -->
                     <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
                             data-bs-target="#addFolderModal" data-bs-whatever="新建文件夹">
-                         <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                        <i class="fa fa-plus-circle" aria-hidden="true"></i>
                         新建文件夹
                     </button>
                 </div>
@@ -62,10 +77,10 @@
             <!--卡片主体-->
             <div class="card-body">
                 <table class="table">
-                    <thead>
+                    <thead id="rowList">
                     <tr>
                         <th scope="col">名称</th>
-                        <th scope="col">文件大小</th>
+                        <th scope="col">文件大小(字节)</th>
                         <th scope="col">更新者</th>
                         <th scope="col">更新时间</th>
                         <th scope="col">操作</th>
@@ -73,40 +88,57 @@
                     </thead>
                     <tbody>
                     {% for file_obj in file_list %}
-                    <tr>
-                        {% if file_obj.file_type == 1 %}
-                            <td>{{ file_obj.file_name }}</td>
-                            <td>{{ file_obj.file_size }}</td>
-                        {% else %}
-                            <td>
-                                <i class="fa fa-folder-open-o" style="margin-right: 3px"></i>
-                                <a href="{% url 'web007:file' project_id=request.tracer.project.id %}?folder={{ file_obj.id }}">{{ file_obj.file_name }}</a>
+                        <tr>
+                            {% if file_obj.file_type == 1 %}
+                                <td>
+                                        <i class="fa fa-file" aria-hidden="true"></i>{{ file_obj.file_name }}
+                                </td>
+                                <td>{{ file_obj.file_size }}</td>
+                            {% else %}
+                                <td>
+                                    <i class="fa fa-folder-open-o" style="margin-right: 3px"></i>
+                                    <a href="{% url 'web007:file' project_id=request.tracer.project.id %}?folder={{ file_obj.id }}">{{ file_obj.file_name }}</a>
+                                </td>
+                                <td><i class="fa fa-folder"></i></td>
+                            {% endif %}
+                            <td>{{ file_obj.user.username }}</td>
+                            <td>{{ file_obj.file_update_time }}</td>
+                            {% if file_obj.file_type == 1 %}
+                                <td>
+                                <a class="btn btn-success btn-sm download" href="{% url 'web007:file_download' project_id=request.tracer.project.id file_id=file_obj.id %}">
+                                    <i class="fa fa-cloud-download" aria-hidden="true"></i>
+                                </a>
+                                <a class="btn btn-danger btn-sm delete"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#delFolderModal"
+                                   data-name="{{ file_obj.file_name }}"
+                                   data-fid="{{ file_obj.id }}"
+                                >
+                                    <i class="fa fa-trash" aria-hidden="true"></i>
+                                </a>
                             </td>
-                            <td><i class="fa fa-folder"></i></td>
-                        {% endif %}
-                        <td>{{ file_obj.user.username }}</td>
-                        <td>{{ file_obj.file_update_time }}</td>
-                        <td>
-                            <!--点击修改文件夹用的也是添加文件夹的modal-->
-                            <!--通过自定义属性向js或者jquery传值-->
-                            <a href="" class='btn btn-primary btn-sm'
+                            {% else %}
+                                <td>
+                                <!--点击修改文件夹用的也是添加文件夹的modal-->
+                                <!--通过自定义属性向js或者jquery传值-->
+                                <a href="" class='btn btn-primary btn-sm'
                                    data-bs-toggle="modal"
                                    data-bs-target="#addFolderModal"
                                    data-bs-whatever="修改文件夹"
                                    data-name="{{ file_obj.file_name }}"
-                                   data-fid="{{ file_obj.id }}"
-                                   style="margin-right: 10px">
-                                <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
-                            </a>
-                            <a href="" class="btn btn-danger btn-sm"
-                                id="delFolderBtn"
-                                data-bs-toggle="modal"
-                                data-bs-target="#delFolderModal"
-                                data-fid="{{ file_obj.id }}">
-                                <i class="fa fa-trash" aria-hidden="true"></i>
-                            </a>
-                        </td>
-                    </tr>
+                                   data-fid="{{ file_obj.id }}">
+                                    <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                                </a>
+                                <a href="" class="btn btn-danger btn-sm"
+                                   id="delFolderBtn"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#delFolderModal"
+                                   data-fid="{{ file_obj.id }}">
+                                    <i class="fa fa-trash" aria-hidden="true"></i>
+                                </a>
+                            </td>
+                            {% endif %}
+                        </tr>
                     {% endfor %}
                     </tbody>
                 </table>
@@ -114,7 +146,7 @@
         </div>
     </div>
 
-    <!-- 新建文件弹出框 -->
+    <!-- 新建修改文件弹出框 -->
     <div class="modal fade" id="addFolderModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -141,46 +173,101 @@
         </div>
     </div>
 
+
     <!-- 修改文件夹弹出框 -->
     <div class="modal fade" id='delFolderModal' tabindex="-1">
         <div class="modal-dialog">
             <div class="alert alert-danger" role="alert">
                 <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title">删除目录</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body">
-                    <p>这将会删除目录和目录下的所有文件！！！</p>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary"
-                        id="deleteFolder">
-                        确定
-                    </button>
-                  </div>
+                    <div class="modal-header">
+                        <h5 class="modal-title">删除目录或文件</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                        <div class="modal-body">
+                            <p>这将会删除所选文件！！！</p>
+                        </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary"
+                                id="deleteFolder">
+                            确定
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!--文件上传进度条-->
+    <div class="card d-none" style="width: 30rem;" id="progressDiv">
+      <div class="card-header text-bg-primary">
+        上传进度
+        <button type="button" class="btn-close float-end" aria-label="Close" onclick="closeDiv(event)"></button>
+      </div>
+      <div class="card-body" id="progressDivBody"></div>
+    </div>
+
+    <!--进度条生成-->
+    <div class="d-none" id="progressHideDiv">
+        <div class="file">
+        <div class="fileName"></div>
+          <div class="progress" role="progressbar" aria-label="Success striped example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-bar progress-bar-striped bg-success" style="width: 0%">0%</div>
+          </div>
+          <div class="progressError"></div>
+        </div>
+    </div>
+
+    <!--文件上传后，文件页面的渲染-->
+    <div class="d-none">
+        <table id="rowTpl">
+            <tr>
+                <td>
+                    <i class="fa fa-file" aria-hidden="true"></i>
+                    <span class="name"></span>
+                </td>
+                <td class="file_size"></td>
+                <td class="username"></td>
+                <td class="datetime"></td>
+                <td>
+                    <a class="btn btn-success btn-sm download" id="file_download">
+                        <i class="fa fa-cloud-download" aria-hidden="true"></i>
+                    </a>
+                    <a class="btn btn-danger btn-sm delete" data-bs-toggle="modal" data-bs-target="#delFolderModal">
+                        <i class="fa fa-trash" aria-hidden="true"></i>
+                    </a>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!--用于从后端传递数据-->
+    <div class='d-none' id="folder-container" data-folder-id="{{ folder_obj.id }}"></div>
+
+
 {% endblock %}
 
 {% block js %}
+    <script src="{% static 'CORS/cos-js-sdk-v5.min.js' %}"></script>
     <script>
         // 各种变量的定义
         let DELETE_FOLDER_URL = "{% url 'web007:delete_folder' project_id=request.tracer.project.id %}";
+        let GET_CREDENTIAL_URL = "{% url 'web007:get_credential' project_id=request.tracer.project.id %}";
+        let POST_FILE_URL = '{% url "web007:post_file" project_id=request.tracer.project.id %}';
+        // 获取文件时在哪个文件夹下被上传的。
+        let CURRENT_FOLDER_ID =$('#folder-container').data('folder-id');
 
         $(function () {
             bindFolderForm();
             initFolderModel();
             deleteFolder();
+            uploadFile();
         })
 
 
         // 获取弹出新建文件夹的按钮，添加事件，重置模态框中的报错信息。
         function initFolderModel() {
-            $('#addFolderModal').on('show.bs.modal', function (event){
+            $('#addFolderModal').on('show.bs.modal', function (event) {
                 // 获取触发模态框按钮时，模态框中各种属性值
                 let button = $(event.relatedTarget);
                 let modal = $(this);
@@ -192,10 +279,10 @@
                 //设置添加和删除文件夹是弹出框标题
                 modal.find('.modal-title').text(description);
                 // 如果有fid,则表示修改文件夹，否则为新建文件夹,为表单数据赋值。
-                if (fid){
+                if (fid) {
                     modal.find('#id_file_name').val(name);
                     modal.find('#fid').val(fid);
-                }else{
+                } else {
                     modal.find('.errMsg').empty();
                     $('#folderForm')[0].reset();
                 }
@@ -209,6 +296,7 @@
             })
         }
 
+        // 文件夹的新建与修改
         function bindFolderForm() {
             $('#folderFormSubmit').click(function () {
                 $.ajax({
@@ -233,10 +321,10 @@
         function deleteFolder() {
             $("#deleteFolder").click(function () {
                 $.ajax({
-                    url:DELETE_FOLDER_URL,
+                    url: DELETE_FOLDER_URL,
                     type: 'get',
                     // 获取删除按钮的自定义属性值data-fid，把值传给后端。这个fid是文件夹的id
-                    data: {'fid':$(this).attr('fid')},
+                    data: {'fid': $(this).attr('fid')},
                     dataType: 'json',
                     success: function (res) {
                         if (res.status) {
@@ -246,5 +334,116 @@
                 })
             })
         }
+
+        // 上传文件
+        function uploadFile() {
+            // 获取文件大小以及文件名传给后台做判断，返回临时秘钥
+            $('#uploadFile').change(function () {
+                // 上传文件时先把之前上传文件进度条清空。
+                $('#progressDivBody').empty()
+                let fileList = $(this)[0].files;
+                let checkFileList = [];
+                $.each(fileList, function (index, file) {
+                    checkFileList.push({'name': file.name, 'size': file.size});
+                })
+                let jsonCheckFileList = JSON.stringify(checkFileList);
+                // 判断是否可以获取临时秘钥，获取成功后才能上传文件
+            let cos = new COS({
+                // getAuthorization 必选参数
+                getAuthorization: function (options, callback) {
+                    let data = null;
+                    let credentials = null;
+                    // 初始化时不会调用，只有调用 cos 方法（例如 cos.putObject）时才会进入
+                    // 异步获取临时密钥
+                    // 判断是否可以获取临时秘钥，获取成功后才能上传文件
+                    $.post(GET_CREDENTIAL_URL, jsonCheckFileList,function (res) {
+                        if (res.status) {
+                            data = res.data;
+                            credentials = res.data.credentials;
+                            callback({
+                                TmpSecretId: credentials.tmpSecretId,
+                                TmpSecretKey: credentials.tmpSecretKey,
+                                SecurityToken: credentials.sessionToken,
+                                // 建议返回服务器时间作为签名的开始时间，避免用户浏览器本地时间偏差过大导致签名错误
+                                StartTime: data.startTime, // 时间戳，单位秒，如：1580000000
+                                ExpiredTime: data.expiredTime, // 时间戳，单位秒，如：1580000000
+                            });
+                            // 后台以通过验证发送临时证书，显示上传进度条
+                            $('#progressDiv').removeClass('d-none')
+                        }
+                        else {
+                            alert(res.error);
+                        }
+                    },'json')
+                }
+            });
+            // 文件上传
+            $.each(fileList, function (index, file) {
+                let fileName = file.name;
+                let fileSize = file.size;
+                // 文件在服务器的名字
+                let key = (new Date()).getTime()+'_'+fileName;
+                // 设置了一个隐藏DIV用于每个文件进度条的生成。
+                let progressBarDiv = $('#progressHideDiv').find('.file').clone()
+                progressBarDiv.find('.fileName').text(fileName);
+                $('#progressDivBody').append(progressBarDiv)
+
+                cos.putObject({
+                        Bucket: '{{ request.tracer.project.project_bucket }}', /* 必须 */
+                        Region: 'ap-beijing',     /* 存储桶所在地域，必须字段 */
+                        Key: key,              /* 必须 */
+                        StorageClass: 'STANDARD',
+                        Body: file, // 上传文件对象
+                        // 文件传输中进度条的变化
+                        onProgress: function (progressData) {
+                            // 有一个参数percent
+                            // 设置文件传输DIV中的百分比进度条
+                            let percent = progressData.percent * 100 + '%'
+                            progressBarDiv.find('.progress-bar').text(percent)
+                            progressBarDiv.find('.progress-bar').css('width',percent)
+                        }
+                    }, function (err, recData) {
+                    // data中有三个有用参数，statusCode 200传送成功，Location文件在cos端的路径名称（不含https://），ETag上传后唯一标识。
+                    if(recData.statusCode===200){
+                        let postDict = {
+                            file_name: fileName,
+                            key: key,
+                            file_size: fileSize,
+                            parent: CURRENT_FOLDER_ID,
+                            etag: recData.ETag,
+                            file_path: recData.Location
+                        }
+                        $.post(POST_FILE_URL,JSON.stringify(postDict),function (res){
+                            //数据库中写入成功的数据，在前端页面渲染出来
+                            if(res.status){
+                                let newTr = $('#rowTpl').find('tr').clone()
+                                newTr.find('.name').text(res.data.name);
+                                newTr.find('.file_size').text(res.data.size);
+                                newTr.find('.username').text(res.data.username);
+                                newTr.find('.datetime').text(res.data.datetime);
+                                newTr.find('.delete').attr('data-fid', res.data.id);
+                                newTr.find('#file_download').attr('href', res.data.download_url);
+                                $('#rowList').append(newTr);
+                            }else {
+                                console.log(res.error)
+                            }
+                        },'json')
+                    }else{
+                        progressBarDiv.find('.progressError').text('文件传输错误。')
+                    }
+                });
+            })
+        })
+    }
+
+    // 关闭文件上传进度条div
+    function closeDiv(event) {
+        // 阻止事件冒泡，避免其他可能绑定在body或父元素上的点击事件被触发
+        event.stopPropagation();
+        // 获取要关闭的div
+        var div = document.getElementById('progressDiv');
+        // 隐藏div
+        div.classList.add('d-none');
+    }
     </script>
 {% endblock %}

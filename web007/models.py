@@ -30,9 +30,8 @@ class ProjectStrategy(models.Model):
     # 项目可参加最大人数
     project_max_collaborator = models.PositiveIntegerField(verbose_name='项目可参加人数')
     # 项目占用最大空间
-    project_max_space = models.PositiveIntegerField(verbose_name='项目占用最大空间')
-    # 每个项目文件最大容量
-    project_max_file = models.PositiveIntegerField(verbose_name='每个项目文件最大容量')
+    project_max_space = models.PositiveIntegerField(verbose_name='项目占用最大空间',help_text='M')
+    project_max_file = models.PositiveIntegerField(verbose_name='每个项目文件最大容量',help_text='M')
     # 项目创建时间 ,auto_now是每次自动保存当前时间,auto_now_add是只保存第一次自动保存当前时间
     project_create_time = models.DateTimeField(verbose_name='项目创建时间', auto_now_add=True)
 
@@ -83,7 +82,7 @@ class ProjectDetail(models.Model):
     # 星标
     project_star = models.BooleanField(verbose_name='星标', default=False)
     # 已使用空间
-    project_used_space = models.PositiveIntegerField(verbose_name='已使用空间', default=0)
+    project_used_space = models.BigIntegerField(verbose_name='已使用空间', default=0)
     # 存储桶
     project_bucket = models.CharField(verbose_name='存储桶', max_length=64)
     # 存储桶所在地
@@ -132,7 +131,7 @@ class File(models.Model):
     # 文件名
     file_name = models.CharField(verbose_name='文件名', max_length=128, db_index=True)
     # 文件大小
-    file_size = models.PositiveIntegerField(verbose_name='文件大小', null=True, blank=True)
+    file_size = models.BigIntegerField(verbose_name='文件大小', null=True, blank=True)
     # 文件类型
     file_type = models.SmallIntegerField(verbose_name='文件类型', choices=file_type, default=2)
     # 文件路径,考虑到长目录名，所以使用路径长度也大一些

@@ -1,0 +1,68 @@
+{% extends 'web007/layout/manage.html' %}
+
+{% block title %}项目删除页面{% endblock %}
+
+
+{% block css %}
+    <style>
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+{% endblock %}
+
+
+{% block content %}
+    <div class="container" style="margin-top: 80px">
+        <!--左侧站三个位置-->
+        <div class="col-sm-3" style="margin-right: 10px">
+            <div class="list-group">
+              <h5 class="list-group-item text-bg-primary">
+                个人中心
+              </h5>
+              <a href="#" class="list-group-item list-group-item-action">我的资料</a>
+              <a href="#" class="list-group-item list-group-item-action">修改密码</a>
+              <a href="{% url 'web007:settings_delete' project_id=request.tracer.project.id %}" class="list-group-item list-group-item-action">删除项目</a>
+            </div>
+        </div>
+
+        <!--右侧站九个位置-->
+        <div class="col-sm-9">
+            <div class="card">
+              <div class="card-header text-bg-primary">
+                  <i class="fa fa-address-card-o fa-lg" aria-hidden="true" style="margin-right: 10px"></i>我的资料
+              </div>
+              <div class="card-body ">
+                   <form class="form-horizontal" action='{% url 'web007:settings_delete' project_id=request.tracer.project.id %}' method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label" style="margin-bottom: 10px">项目名</label>
+                            <div class="col-sm-7">
+                                <input type="text" class="form-control" placeholder="请输入项目名称" name="project_name" id="project_name">
+                                <span class="errMsg">{{ error }}</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-offset-2 col-sm-5" style="margin-top: 20px">
+                                <button type="submit" class="btn btn-danger">删除</button>
+                            </div>
+                        </div>
+                    </form>
+              </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block js %}
+    <script>
+        // 当project_name获得鼠标enter事件时，将errMsg中的内容清空
+        project_name = document.getElementById('project_name')
+        errMsg = document.querySelector('.errMsg')
+        project_name.addEventListener('mousedown',function (){
+            errMsg.textContent = ''
+        })
+    </script>
+{% endblock %}

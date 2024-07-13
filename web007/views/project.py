@@ -44,7 +44,8 @@ def project_list(request):
     form = ProjectModelForm(request, data=request.POST)
     if form.is_valid():
         #创建项目存储文件的桶
-        bucket_name =request.tracer.user.mobile_phone + '-' + str(int(time.time()))+'-1327273828'
+        # 获取手机号码后3位+时间戳
+        bucket_name = request.tracer.user.mobile_phone[-3:] + str(int(time.time()))+'-1327273828'
         # 在云端创建一个存储桶
         cos.create_bucket(bucket_name)
         form.instance.project_bucket = bucket_name

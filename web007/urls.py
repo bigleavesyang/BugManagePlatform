@@ -5,6 +5,7 @@ from web007.views import home
 from web007.views import manage
 from web007.views import wiki
 from web007.views import file
+from web007.views import settings
 
 urlpatterns = [
     # 用户模块
@@ -43,10 +44,16 @@ urlpatterns = [
         # 文件路径相关
         path('file/', file.file, name='file'),
         path('file/delFolder/', file.del_folder, name='delete_folder'),
+        path('file/getCredential/', file.get_credential, name='get_credential'),
+        path('file/postFile/', file.post_file, name='post_file'),
+        path('file/download/<int:file_id>', file.file_download, name='file_download'),
+
+        # 设置路径相关
+        path('settings/', settings.settings, name='settings'),
+        path('settings/delete/',settings.settings_delete, name='settings_delete'),
 
 
         path('statistics/', manage.statistics, name='statistics'),
-        path('setting/',manage.setting, name='setting'),
     ]))
 ]
 

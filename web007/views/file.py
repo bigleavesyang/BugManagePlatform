@@ -1,8 +1,12 @@
-from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.shortcuts import render, redirect,reverse
+from django.http import JsonResponse,HttpResponse
 from web007 import models
-from web007.forms.file import FolderForm
+from web007.forms.file import FolderForm,PostFileForm
 from utils.tencent import cos
+import json
+from django.views.decorators.csrf import csrf_exempt
+import requests
+
 
 
 # 文件页面的展示，新增与修改
@@ -35,6 +39,7 @@ def file(request, project_id):
             'form': form,
             'file_list': file_list,
             'folder_list': folder_list,
+            'folder_obj': parent,
         }
         return render(request, 'web007/file.html', context)
 
@@ -71,7 +76,7 @@ def del_folder(request, project_id):
         request.tracer.project.project_used_space -= file_obj.file_size
         request.tracer.project.save()
         # 删除腾讯云端文件
-        cos.del_file(request.tracer.project.project_bucket, file_obj)
+        cos.del_file(request.tracer.project.project_bucket, file_obj.key)
         file_obj.delete()
         return JsonResponse({'status': True})
 
@@ -90,7 +95,7 @@ def del_folder(request, project_id):
             if child.file_type == 1:
                 total_size += child.file_size
                 # 形成腾讯云批量删除的格式。
-                key_list.append({'key': child.file_name})
+                key_list.append({"Key": child.key})
             else:
                 file_list.append(child)
     # cos端批量删除文件
@@ -103,3 +108,89 @@ def del_folder(request, project_id):
     # 删除数据库中记录
     file_obj.delete()
     return JsonResponse({'status': True})
+
+
+# 获取cors的授权
+@csrf_exempt #发送post请求不需要csrf证书
+def get_credential(request, project_id):
+    # 项目策略表中的文件最大限度。
+    file_limit_size = request.tracer.price_strategy.project_max_file * 1024 * 1024
+    # 项目策略表中的用户可使用最大空间。
+    space_limit_size = request.tracer.price_strategy.project_max_space * 1024 * 1024
+    # 从前端拿到每个文件的大小，并计算出总大小。
+    total_size = 0
+    # 获取前端传过来的文件列表。反序列化成python格式。
+    file_list = json.loads(request.body.decode('utf-8'))
+    for file_obj in file_list:
+        if file_obj['size'] > file_limit_size:
+            file_limit_m = int(file_obj["size"]/1024/1024)
+            print(file_limit_m)
+            msg = f'上传单个文件大小超出限制，请升级。{file_obj["name"]}大小{file_limit_m}M'
+            return JsonResponse({'status': False, 'error': msg})
+        total_size += file_obj['size']
+    # 判断上传文件总量是否超出用户策略最大值。
+    if request.tracer.project.project_used_space + total_size > space_limit_size:
+        return JsonResponse({'status': False, 'error': '容量已超出限制，请升级套餐。'})
+    # 所有条件都符合，往前端传回秘钥。
+    bucket_name = request.tracer.project.project_bucket
+    data_dict = cos.credential(request,bucket_name)
+    return JsonResponse({'status': True,'data':data_dict})
+
+
+# 往数据库中写入文件信息
+@csrf_exempt
+def post_file(request, project_id):
+    """ 已上传成功的文件写入到数据 """
+    """
+    name: fileName,
+    key: key,
+    file_size: fileSize,
+    parent: CURRENT_FOLDER_ID,
+    # etag: data.ETag,
+    file_path: data.Location
+    """
+    data = json.loads(request.body.decode('utf-8'))
+    form = PostFileForm(request,data=data)
+    if form.is_valid():
+        # 通过ModelForm.save存储到数据库中的数据返回的isntance对象，无法通过get_xx_display获取choice的中文
+        # form.instance.file_type = 1
+        # form.update_user = request.tracer.user
+        # instance = form.save() # 添加成功之后，获取到新添加的那个对象（instance.id,instance.name,instance.file_type,instace.get_file_type_display()
+
+        # 校验通过：把清洗后的数据，写入到数据库中。并得到写入数据库后的对象。
+        data_dict = form.cleaned_data
+        data_dict.pop('etag')
+        data_dict.update({'project': request.tracer.project, 'user': request.tracer.user,'file_type': 1})
+        instance = models.File.objects.create(**data_dict)
+        # 计算用于已使用空间和新上传的文件的总大小。这里是字节。
+        request.tracer.project.project_used_space += instance.file_size
+        request.tracer.project.save()
+        # 通过产生的对象中的属性，生成一个字典，用于返回给前端。进行渲染。
+        res = {
+            'id': instance.id,
+            'name': instance.file_name,
+            'size': instance.file_size,
+            'username': instance.user.username,
+            'datetime': instance.file_update_time.strftime('%Y-%m-%d %H:%M'),
+            'download_url': reverse('web007:file_download', kwargs={'project_id':project_id,'file_id':instance.id}),
+        }
+        return JsonResponse({'status': True, 'data': res})
+    else:
+        print(form.errors)
+        return JsonResponse({'status': False, 'error': '文件写入错误'})
+
+
+def file_download(request, project_id, file_id):
+    file_obj = models.File.objects.filter(id=file_id,project=request.tracer.project).first()
+    res = requests.get(file_obj.file_path)
+    # 文件分块下载处理
+    data = res.iter_content()
+    # 设置content_type=application/octet-stream 用于提示下载的是二进制数据流
+    response = HttpResponse(data, content_type='application/octet-stream')
+    # 转义文件名中的特殊字符
+    from django.utils.encoding import escape_uri_path
+    # 设置响应头，同时对有可能出现的中文文件名进行转义
+    response['Content-Disposition'] = 'attachment; filename="%s"' % escape_uri_path(file_obj.file_name)
+    return response
+
+
