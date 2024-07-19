@@ -11,6 +11,9 @@ class UserInfo(models.Model):
     email = models.EmailField(verbose_name='邮箱', max_length=32)
     password = models.CharField(verbose_name='密码', max_length=64)
 
+    def __str__(self):
+        return self.username
+
 
 class ProjectStrategy(models.Model):
     # 项目分类的类似枚举作用的定义
@@ -30,8 +33,8 @@ class ProjectStrategy(models.Model):
     # 项目可参加最大人数
     project_max_collaborator = models.PositiveIntegerField(verbose_name='项目可参加人数')
     # 项目占用最大空间
-    project_max_space = models.PositiveIntegerField(verbose_name='项目占用最大空间',help_text='M')
-    project_max_file = models.PositiveIntegerField(verbose_name='每个项目文件最大容量',help_text='M')
+    project_max_space = models.PositiveIntegerField(verbose_name='项目占用最大空间', help_text='M')
+    project_max_file = models.PositiveIntegerField(verbose_name='每个项目文件最大容量', help_text='M')
     # 项目创建时间 ,auto_now是每次自动保存当前时间,auto_now_add是只保存第一次自动保存当前时间
     project_create_time = models.DateTimeField(verbose_name='项目创建时间', auto_now_add=True)
 
@@ -148,3 +151,74 @@ class File(models.Model):
 
     def __str__(self):
         return self.file_name
+
+
+# 和项目相关的问题表
+class Issue(models.Model):
+    # 关联的项目
+    project = models.ForeignKey(verbose_name='项目', to='ProjectDetail', on_delete=models.CASCADE)
+    # 问题类型
+    issues_type = models.ForeignKey(verbose_name='问题类型', to='IssueType', null=True, on_delete=models.SET_NULL)
+    # 问题模块（进度）
+    module = models.ForeignKey(verbose_name='模块', to='Module', null=True, blank=True, on_delete=models.SET_NULL)
+    # 主题及描述
+    subject = models.CharField(verbose_name='主题', max_length=80)
+    desc = models.TextField(verbose_name='问题描述')
+    priority_choices = (
+        ("danger", "高"),
+        ("warning", "中"),
+        ("success", "低"),
+    )
+    # 问题优先级
+    priority = models.CharField(verbose_name='优先级', max_length=12, choices=priority_choices, default='danger')
+    # 问题状态
+    status_choices = (
+        (1, '新建'),
+        (2, '处理中'),
+        (3, '已解决'),
+        (4, '已忽略'),
+        (5, '待反馈'),
+        (6, '已关闭'),
+        (7, '重新打开'),
+    )
+    status = models.SmallIntegerField(verbose_name='状态', choices=status_choices, default=1)
+    # 被指派者
+    assign = models.ForeignKey(to='UserInfo', on_delete=models.CASCADE, verbose_name='指派', related_name='task')
+    #  关注者，这是一个manytomany字段
+    attention = models.ManyToManyField(to='UserInfo', verbose_name='关注者', related_name='observe', blank=True)
+    start_date = models.DateTimeField(verbose_name='开始时间', null=True, blank=True)
+    end_date = models.DateTimeField(verbose_name='结束时间', null=True, blank=True)
+    mode_choices = (
+        (1, '公开模式'),
+        (2, '隐私模式'),
+    )
+    mode = models.SmallIntegerField(verbose_name='模式', choices=mode_choices, default=1)
+    # 父问题
+    parent = models.ForeignKey(verbose_name='父问题', to='self', on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name='child')
+    # 问题的创建者
+    creator = models.ForeignKey(verbose_name='创建者', to=UserInfo, on_delete=models.CASCADE,
+                                related_name='create_problem')
+    create_time = models.DateTimeField(verbose_name='创建时间', auto_now_add=True)
+    last_update_time = models.DateTimeField(verbose_name='最后更新时间', auto_now=True)
+
+    def __str__(self):
+        return self.subject
+
+
+class IssueType(models.Model):
+    PROJECT_ISSUES_TYPE = ['任务','功能','Bug']
+
+    title = models.CharField(verbose_name='类型名称', max_length=32, )
+    project = models.ForeignKey(verbose_name='项目', to='ProjectDetail', on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return self.title
+
+
+class Module(models.Model):
+    project = models.ForeignKey(verbose_name='项目', to='ProjectDetail', on_delete=models.DO_NOTHING)
+    title = models.CharField(verbose_name='模块名称', max_length=32)
+
+    def __str__(self):
+        return self.title

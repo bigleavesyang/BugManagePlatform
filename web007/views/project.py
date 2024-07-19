@@ -50,7 +50,13 @@ def project_list(request):
         cos.create_bucket(bucket_name)
         form.instance.project_bucket = bucket_name
         form.instance.project_creator = request.tracer.user
-        form.save()
+        instance = form.save()
+        # 创建问题列表中的问题类型
+        issues_type_list = []
+        for item in models.IssueType.PROJECT_ISSUES_TYPE:
+            # 每个任务类型生成一个对象加到列表之中
+            issues_type_list.append(models.IssueType(project=instance,title=item))
+        models.IssueType.objects.bulk_create(issues_type_list)
         return JsonResponse({'status': True})
     return JsonResponse({'status': False, 'error': form.errors})
 

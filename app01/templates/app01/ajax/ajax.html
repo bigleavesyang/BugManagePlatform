@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        #msg {
+            width: 200px;
+            height: 200px;
+            border: 1px solid;
+        }
+        #postMsg {
+            width: 200px;
+            height: 200px;
+            border: 1px solid red;
+        }
+    </style>
+</head>
+<body>
+<input type="button" value="发送" id="submit">
+<input type="button" value="post发送" id="postBtn">
+<div id="msg"></div>
+<section id="postMsg"></section>
+
+<script>
+    /*-------------------------复制到django中去运行----------------------------------*/
+    //get发送请求
+    let submitBtn = document.getElementById('submit')
+    let msgDiv = document.getElementById('msg')
+    submitBtn.addEventListener('click',function (){
+        // 获取一个AJAX对象。
+        const xht = new XMLHttpRequest()
+        xht.open('GET','http://localhost:8000/app01/ajax/get/?username=zy08&pwd=1234')
+        xht.send()
+        // 请求发送完成以后执行
+        xht.onreadystatechange = function (){
+            if(xht.readyState===4){
+                if(xht.status>=200 && xht.status<=300){
+                    let data = JSON.parse(xht.responseText)
+                    let username = data.username
+                    let pwd = data.password
+                    msgDiv.textContent = username + pwd
+                }
+            }
+        }
+    })
+
+    //post发送请求
+    let postBtn = document.getElementById('postBtn')
+    let postMsg = document.getElementById('postMsg')
+    postBtn.addEventListener('click',() => {
+        const xht = new XMLHttpRequest()
+        xht.open('POST','http://localhost:8000/app01/ajax/get/')
+        // 设置返回格式为JSON
+        xht.responseType = 'json'
+        // 设置POST头
+        xht.setRequestHeader('Content-type','application/x-www-form-urlencoded')
+        // POST需要在这里传参数
+        xht.send('username=DoctorYu&pwd=1982')
+        // 请求发送完成以后执行
+        xht.onreadystatechange = function (){
+            if(xht.readyState===4){
+                if(xht.status>=200 && xht.status<=300){
+                    let postData = xht.response
+                    let username = postData.username
+                    let pwd = postData.password
+                    postMsg.textContent = username + pwd
+                }
+            }
+        }
+    })
+</script>
+</body>
+</html>

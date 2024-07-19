@@ -2,6 +2,7 @@
 # coding=utf-8
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from django import forms
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
@@ -42,8 +43,9 @@ def register(request):
     form = RegisterModelForm()
     return render(request, 'app01/register.html', {'form': form})
 
+
 def login(request):
-    print(request.GET.get('mobile_phone'),request.GET.get('tpl'))
+    print(request.GET.get('mobile_phone'), request.GET.get('tpl'))
     return render(request, 'app01/login.html')
 
 
@@ -97,22 +99,47 @@ def get_cridential(request):
 
 # 新建文件或文件夹页面，目录逐层显示的问题
 # 用于生成文件目录结构
-def file(request,project_id):
-    # 生成一个folder_id用户接受前端get发送来的文件夹id
-    folder_id = request.GET.get('folder_id')
-    # 生成一个列表套字典字典，用于存储文件信息，字典中key设置为id,value设置为文件名
-    file_list = []
-    # 判断folder_id是否存在，如果不存在则pass,如果存在则从file表中查询folder_id对应的文件信息,
-    if not folder_id:
-        pass
-    else:
-        # 查询是否是文件夹
-        file_obj = models.File.objects.filter(folder_id=folder_id,file_type=2).first()
-        row_obj = file_obj
-        # 如果row_obj存在，则while循环，将file_obj的id和name添加到字典中,然后赋值row_obj为file_obj的parent
-        while row_obj:
-            # 向列表的第0个位置添加字典，字典中key为id,value为row_obj.id，这样第一个位置一直是最上层，知道顶层，row_obj为None
-            file_list.insert(0,{'id':row_obj.id,'name':row_obj.file_name})
-            row_obj = row_obj.parent
-    return JsonResponse(file_list)
+# def file(request,project_id):
+#     # 生成一个folder_id用户接受前端get发送来的文件夹id
+#     folder_id = request.GET.get('folder_id')
+#     # 生成一个列表套字典字典，用于存储文件信息，字典中key设置为id,value设置为文件名
+#     file_list = []
+#     # 判断folder_id是否存在，如果不存在则pass,如果存在则从file表中查询folder_id对应的文件信息,
+#     if not folder_id:
+#         pass
+#     else:
+#         # 查询是否是文件夹
+#         file_obj = models.File.objects.filter(folder_id=folder_id,file_type=2).first()
+#         row_obj = file_obj
+#         # 如果row_obj存在，则while循环，将file_obj的id和name添加到字典中,然后赋值row_obj为file_obj的parent
+#         while row_obj:
+#             # 向列表的第0个位置添加字典，字典中key为id,value为row_obj.id，这样第一个位置一直是最上层，知道顶层，row_obj为None
+#             file_list.insert(0,{'id':row_obj.id,'name':row_obj.file_name})
+#             row_obj = row_obj.parent
+#     return JsonResponse(file_list)
 
+
+def ajax(request):
+    return render(request, 'app01/ajax/ajax.html')
+
+
+@csrf_exempt
+# get和post写在一起了。
+def ajax_get(request):
+    if request.method == 'GET':
+        res_dic = {
+            'username': request.GET.get('username'),
+            'password': request.GET.get('pwd'),
+        }
+        response = JsonResponse(res_dic)
+        # 设置跨域响应头
+        response['Access-Control-Allow-Origin'] = '*'
+        return response
+
+    res_dic = {
+        'username': request.POST.get('username'),
+        'password': request.POST.get('pwd'),
+    }
+    response = JsonResponse(res_dic)
+    response['Access-Control-Allow-Origin'] = '*'
+    return response

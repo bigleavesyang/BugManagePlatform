@@ -6,6 +6,7 @@ from web007.views import manage
 from web007.views import wiki
 from web007.views import file
 from web007.views import settings
+from web007.views import issues
 
 urlpatterns = [
     # 用户模块
@@ -31,13 +32,12 @@ urlpatterns = [
     # 项目内部模块
     path('manage/<int:project_id>/', include([
         path('dashboard/', manage.dashboard, name='dashboard'),
-        path('issues/', manage.issues, name='issues'),
 
         path('wiki/', wiki.index, name='wiki'),
         path('wiki/add/', wiki.add, name='wiki_add'),
         # 接受前端ajax发来的请求，返回json格式的数据，返回的是文章列表。
-        path('wiki/catelog/',wiki.catalog, name='wiki_catalog'),
-        path('wiki/edit/<int:wiki_id>/',wiki.wiki_edit, name='wiki_edit'),
+        path('wiki/catelog/', wiki.catalog, name='wiki_catalog'),
+        path('wiki/edit/<int:wiki_id>/', wiki.wiki_edit, name='wiki_edit'),
         path('wiki/delete/<int:wiki_id>/', wiki.wiki_del, name='wiki_del'),
         path('wiki/upload/', wiki.upload_image, name='wiki_upload'),
 
@@ -50,7 +50,10 @@ urlpatterns = [
 
         # 设置路径相关
         path('settings/', settings.settings, name='settings'),
-        path('settings/delete/',settings.settings_delete, name='settings_delete'),
+        path('settings/delete/', settings.settings_delete, name='settings_delete'),
+
+        # 问题处理相关路径
+        path('issues/', issues.issues, name='issues'),
 
 
         path('statistics/', manage.statistics, name='statistics'),
