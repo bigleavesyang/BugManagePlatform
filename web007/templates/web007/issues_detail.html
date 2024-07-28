@@ -1,0 +1,466 @@
+{% extends 'web007/layout/manage.html' %}
+{% load static %}
+{% block title %}问题修改{% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'editor.md/css/editormd.min.css' %}"/>
+    <link rel="stylesheet" href="{% static 'bootstrap-datepicker/css/bootstrap-datepicker.min.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap-select/css/bootstrap-select.min.css' %}">
+    <style>
+    .container-fluid {
+        display: flex;
+        flex-direction: row;
+    }
+    .form-group {
+            display: flex;
+            flex-direction: row;
+            margin-bottom: 15px;
+        }
+    .innerForm {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .editormd-fullscreen {
+            z-index: 1001;
+        }
+
+     .pd-0 {
+            padding-right: 30px !important;
+        }
+
+        .comment-area .item {
+            margin-top: 20px;
+        }
+
+        .comment-area .left-avatar {
+            float: left;
+            margin-right: 10px;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: #304659;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+        }
+
+        .comment-area .right-info {
+            padding-left: 35px;
+        }
+
+        .comment-area .right-info .desc .msg {
+            display: inline-block;
+            padding-right: 20px;
+            color: #8c8c8c;
+        }
+
+        .comment-area .child {
+            padding-left: 55px;
+        }
+
+        .comment-area .errMsg {
+            color: red;
+        }
+        .comment-area .reply-user {
+            display: inline-block;
+            background-color: #ddd;
+            color: black;
+            padding: 6px 8px;
+            margin-left: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid" style="margin-top: 90px">
+        <div class="col-sm-7">
+            <div class="card " style="width: 98%">
+                <div class="card-header edit-heading">
+                    <div>
+                        <i class="fa fa-edit" aria-hidden="true"></i> 更新问题
+                    </div>
+
+                </div>
+                <div class="card-body">
+                    <form id="editForm" class="form-horizontal" method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="{{ form.issues_type.id_for_label }}"
+                                   class="col-md-2 control-label">{{ form.issues_type.label }}</label>
+                            <div class="col-md-10">
+                                <div>
+                                    <div>
+                                        {{ form.issues_type }}
+                                    </div>
+                                    <div class="errMsg"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.subject.id_for_label }}"
+                                   class="col-md-2 control-label">{{ form.subject.label }}</label>
+                            <div class="col-md-10">
+                                <div>
+                                        {{ form.subject }}
+                                    <div class="errMsg"></div>
+                                </div>
+                                <div class="errMsg"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.module.id_for_label }}"
+                                   class="col-md-2 control-label">{{ form.module.label }}</label>
+                            <div class="col-md-10">
+                                <div>
+                                    <div>
+                                        {{ form.module }}
+                                    </div>
+                                    <div class="errMsg"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.desc.id_for_label }}"
+                                   class="col-md-2 control-label">{{ form.desc.label }}</label>
+                            <div class="col-md-10">
+                                <div>
+                                    <div id="editor">
+                                        {{ form.desc }}
+                                    </div>
+                                    <div class="errMsg"></div>
+                                </div>
+                                <div class="errMsg"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group clearfix">
+
+                            <div class="col-md-6 pd-0 innerForm">
+                                <label for="{{ form.status.id_for_label }}"
+                                       class="col-md-4 control-label">{{ form.status.label }}</label>
+                                <div class="col-md-8 clearfix">
+                                    <div>
+                                        {{ form.status }}
+                                    </div>
+                                    <div class="errMsg"></div>
+
+                                </div>
+                            </div>
+                            <div class="col-md-6 pd-0 innerForm">
+                                <label for=" {{ form.priority.id_for_label }}"
+                                       class="col-md-4 control-label">{{ form.priority.label }}</label>
+                                <div class="col-md-8">
+                                    <div>
+                                        {{ form.priority }}
+                                    </div>
+                                    <div class="errMsg"></div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group clearfix">
+                            <div class="col-md-6 pd-0 innerForm">
+                                <label for="inputPassword3" class="col-md-4 control-label">指派给</label>
+                                <div class="col-md-8">
+                                    {{ form.assign }}
+                                    <div class="errMsg"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 pd-0 innerForm">
+                                <label for="inputPassword3" class="col-md-4 control-label">关注者</label>
+                                <div class="col-md-8">
+
+                                    {{ form.attention }}
+
+                                    <div class="errMsg"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group clearfix">
+                            <div class="col-md-6 pd-0 innerForm">
+                                <label for="inputPassword3" class="col-md-4 control-label">开始时间</label>
+                                <div class="col-md-8">
+
+                                    <div class="input-group">
+                                        <span class="input-group-text" id="sizing-addon2">
+                                            <i class="fa fa-calendar" aria-hidden="true"></i>
+                                        </span>
+                                        {{ form.start_date }}
+                                    </div>
+                                    <span class="errMsg"></span>
+
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 pd-0 innerForm">
+                                <label for="inputPassword3" class="col-md-4 control-label">截止时间</label>
+                                <div class="col-md-8">
+
+                                    <div class="input-group">
+                                        <span class="input-group-text" id="sizing-addon2">
+                                            <i class="fa fa-calendar" aria-hidden="true"></i>
+                                        </span>
+                                        {{ form.end_date }}
+                                    </div>
+                                    <span class="errMsg"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group clearfix">
+                            <div class="col-md-6 pd-0 innerForm">
+                                <label for="inputPassword3" class="col-md-4 control-label">模式</label>
+                                <div class="col-md-8">
+                                    <div>
+                                        {{ form.mode }}
+                                    </div>
+                                    <div class="errMsg"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 pd-0 innerForm">
+                                <label for="inputPassword3" class="col-md-4 control-label"> 父问题</label>
+                                <div class="col-md-8">
+
+                                    {{ form.parent }}
+
+                                    <div class="errMsg"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 text-end d-none" id="formBtnDiv">
+                            <button type="reset" class="btn btn-outline-success" style="margin-right: 10px">重 置</button>
+                            <button type="button" class="btn btn-primary" id="btnAddSubmit">修 改</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-5">
+            <div class="card ">
+                <div class="card-header">
+                    <i class="fa fa-search" aria-hidden="true"></i> 操作记录
+                </div>
+                <div class="card-body comment-area">
+
+                    <div class="comment-list">
+
+
+                    </div>
+
+                    <hr/>
+                    <div class="comment-text" id="commentText">
+
+                        <div class="form-group">
+                            <textarea id="content" rows="6" class="form-control"
+                                      placeholder="请输入要回复的内容"></textarea>
+                            <span class="errMsg"></span>
+                        </div>
+                        <div  style="display: flex;justify-content: left">
+                        <div>
+                            <input class="btn btn-primary" type="button" id="btnSubmit" value="提 交">
+                        </div>
+                            <div class="reply-user d-none" id="replyUser">
+                                回复 <span></span>
+                                <i class="fa fa-times-circle" aria-hidden="true" style="color: #9d9d9d;"></i>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--问题回复模块-->
+    <div class="d-none" id="recordTemplate">
+        <div class="item clearfix">
+            <div class="left-avatar"></div>
+            <div class="right-info">
+                <pre></pre>
+                <div class="desc">
+                    <div class="msg">
+                        <i class="fa fa-bullhorn" aria-hidden="true"></i>
+                        <span class="type"></span>
+                    </div>
+                    <div class="msg">
+                        <i class="fa fa-user-o" aria-hidden="true"></i>
+                        <span class="user"></span>
+                    </div>
+                    <div class="msg">
+                        <i class="fa fa-clock-o" aria-hidden="true"></i>
+                        <span class="date"></span>
+                    </div>
+
+                    <a href="#commentText" class="reply">
+                        <i class="fa fa-commenting-o" aria-hidden="true"></i> 回复
+                    </a>
+
+                </div>
+            </div>
+            <div class="child">
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script src="{% static 'editor.md/editormd.min.js' %}"></script>
+    <script src="{% static 'bootstrap-datepicker/js/bootstrap-datepicker.min.js' %}"></script>
+    <script src="{% static 'bootstrap-datepicker/js/bootstrap-datepicker.zh-CN.js' %}"></script>
+    <script src="{% static 'bootstrap-select/js/bootstrap-select.min.js' %}"></script>
+
+    <script>
+        const WIKI_UPLOAD_URL = "{% url 'web007:wiki_upload' project_id=request.tracer.project.id %}";
+        const REPLY_RECORD_URL = "{% url 'web007:issues_record' project_id=request.tracer.project.id issues_id=issues_obj.id %}"
+        const FORM_POST_URL = "{% url 'web007:issues_change' project_id=request.tracer.project.id issues_id=issues_obj.id%}"
+
+        $(function(){
+            initDatePicker();
+            initMdEditor();
+            initReplyRecord();
+            bindReply();
+            bindReplySubmit();
+            bindReplyCancel();
+            bindIssuesSubmit();
+        })
+
+        function initDatePicker() {
+                $('#id_start_date,#id_end_date').datepicker({
+                    format: 'yyyy-mm-dd',
+                    startDate: '0',
+                    language: "zh-CN",
+                    autoclose: true
+                });
+        }
+
+
+        function initMdEditor() {
+            // md编辑器初始化
+            var editor = editormd("editor", {
+                // width: "100%",
+                height: 300,
+                // markdown: "请输入内容",     // dynamic set Markdown text
+                path: "{% static 'editor.md/lib/' %}",  // Autoload modules mode, codemirror, marked... dependents libs path
+                // 让编辑器支持markdown上传图片文件。
+                imageUpload: true,
+                imageFormats: ["jpg", 'jpeg', 'png', 'gif'],
+                imageUploadURL: WIKI_UPLOAD_URL,
+                toolbarAutoFixed:false,
+                onload:function(){
+                    this.previewing()
+                }
+            });
+        }
+
+        // 问题回复页面初始化
+        function initReplyRecord(){
+            $.ajax({
+                url:REPLY_RECORD_URL,
+                method:'GET',
+                dataType:'JSON',
+                success:function(res){
+                    if (res.is_creator){
+                        $('#formBtnDiv').removeClass('d-none');
+                    }
+                    if(res.status){
+                        $.each(res.data,function(index,item){
+                          createRecordNode(item);
+                        })
+                    }else{
+                    }
+                }
+            })
+        }
+
+        // 创建问题回复节点
+        function createRecordNode(nodeDict){
+            let $item = $('#recordTemplate').find('.item').clone();
+            $item.find('.left-avatar').html(nodeDict.creator[0].toUpperCase());
+            $item.find('pre').html(nodeDict.content);
+            $item.find('.user').html(nodeDict.creator);
+            $item.find('.type').html(nodeDict.reply_type_text);
+            $item.find('.date').html(nodeDict.datetime);
+            $item.attr({id: nodeDict.id, username: nodeDict.creator});
+
+            // 判断是否是根节点
+            if(!nodeDict.parent_id){
+                $('.comment-list').append($item);
+            }else{
+                $('#'+nodeDict.parent_id).find('.child').append($item);
+            }
+        }
+
+        // 绑定回复
+        function bindReply(){
+            $('.comment-list').on('click','.reply',function(){
+                let $item = $(this).parent().parent().parent();
+                let username = $item.attr('username');
+                let id = $item.attr('id');
+                $('#replyUser').removeClass('d-none').attr('parent-id',id).children('span').text(username);
+            })
+        }
+        
+        // 绑定回复提交
+        function bindReplySubmit(){
+            $('#btnSubmit').click(function() {
+                $('#commentText .errMsg').text('');
+                $.ajax({
+                    url: REPLY_RECORD_URL,
+                    dataType: 'JSON',
+                    method: 'POST',
+                    data: {content: $('#content').val(), reply: $('#replyUser').attr('parent-id')},
+                    success: function (res) {
+                        if (res.status) {
+                            createRecordNode(res.data);
+                            $('#content').val('');
+                            $('#replyUser').addClass('d-none').removeAttr('parent-id').children('span').text('');
+                        }else{
+                            $.each(res.error,function (index,item) {
+                              $('#content').next('errMsg').text(item[0]);
+                            })
+                        }
+                    }
+                })
+            })
+        }
+
+        // 绑定回复取消
+        function bindReplyCancel(){
+            $('#replyUser').click(function(){
+                $(this).addClass('d-none').removeAttr('parent-id').children('span').text('');
+            })
+        }
+
+
+        // 绑定问题提交
+        function bindIssuesSubmit(){
+            $('#btnAddSubmit').click(function(e){
+                e.preventDefault();
+                $.ajax({
+                    url: FORM_POST_URL,
+                    method: 'POST',
+                    dataType: 'JSON',
+                    data: $('#editForm').serialize(),
+                    success: function(res){
+                        if (res.status){
+                            location.href = "{% url 'web007:issues' project_id=request.tracer.project.id %}";
+                        }else{
+                            $.each(res.error,function (key,value) {
+                                console.log(key,value)
+                                $('#id_'+key).next('.errMsg').text(value[0])
+                            })
+                        }
+                    }
+                })
+            })
+        }
+    </script>
+{% endblock %}

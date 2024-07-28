@@ -47,8 +47,8 @@ class Order(models.Model):
     order_status = models.BooleanField(verbose_name='交易状态', default=False)
     # 用户编号
     user = models.ForeignKey(UserInfo, on_delete=models.CASCADE)
-    # 项目编号
-    project = models.ForeignKey(ProjectStrategy, on_delete=models.CASCADE)
+    # 价格策略
+    project_strategy = models.ForeignKey(ProjectStrategy, on_delete=models.CASCADE)
     # 实付金额
     order_price = models.PositiveIntegerField(verbose_name='实付金额')
     # 购买年限
@@ -185,7 +185,7 @@ class Issue(models.Model):
     # 被指派者
     assign = models.ForeignKey(to='UserInfo', on_delete=models.CASCADE, verbose_name='指派', related_name='task')
     #  关注者，这是一个manytomany字段
-    attention = models.ManyToManyField(to='UserInfo', verbose_name='关注者', related_name='observe', blank=True)
+    attention = models.ManyToManyField(to='UserInfo', verbose_name='关注者', related_name='observe')
     start_date = models.DateTimeField(verbose_name='开始时间', null=True, blank=True)
     end_date = models.DateTimeField(verbose_name='结束时间', null=True, blank=True)
     mode_choices = (
@@ -207,7 +207,7 @@ class Issue(models.Model):
 
 
 class IssueType(models.Model):
-    PROJECT_ISSUES_TYPE = ['任务','功能','Bug']
+    PROJECT_ISSUES_TYPE = ['任务', '功能', 'Bug']
 
     title = models.CharField(verbose_name='类型名称', max_length=32, )
     project = models.ForeignKey(verbose_name='项目', to='ProjectDetail', on_delete=models.DO_NOTHING)
@@ -222,3 +222,41 @@ class Module(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class IssuesReply(models.Model):
+    reply_type_choices = (
+        (1, '修改记录'),
+        (2, '回复')
+    )
+    reply_type = models.SmallIntegerField(verbose_name='类型', choices=reply_type_choices, default=2)
+    issues = models.ForeignKey(to='Issue', on_delete=models.CASCADE, verbose_name='问题')
+    creator = models.ForeignKey(to='UserInfo', on_delete=models.CASCADE, related_name='create_reply')
+    content = models.TextField(verbose_name='描述')
+    create_time = models.DateTimeField(verbose_name='创建时间', auto_now_add=True)
+    # 是否是某个回复的评论
+    reply = models.ForeignKey(to='self', null=True, blank=True, on_delete=models.CASCADE, related_name='parent_reply')
+
+
+"""
+生成一个项目邀请码生成表，用于邀请用户加入项目
+字段：关联的项目，邀请码，最大邀请人数（可以为空），已经使用的邀请人数数量，
+    邀请码有效时间（30分钟，1小时，5小时，24小时），生成的时间，创建者
+"""
+
+
+class ProjectInvite(models.Model):
+    project = models.ForeignKey(verbose_name='项目', to='ProjectDetail', on_delete=models.CASCADE)
+    invite_code = models.CharField(max_length=64, verbose_name='邀请码')
+    max_invite = models.PositiveIntegerField(verbose_name='最大邀请人数', null=True, blank=True,
+                                             help_text='如果为空，则表示不限制')
+    invite_num = models.PositiveIntegerField(verbose_name='已邀请人数', default=0)
+    time_choices = (
+        (30, '30分钟'),
+        (60, '1小时'),
+        (300, '5小时'),
+        (1440, '24小时')
+    )
+    period = models.IntegerField(verbose_name='有效时间', choices=time_choices, default=1440)
+    create_time = models.DateTimeField(verbose_name='创建时间', auto_now_add=True)
+    creator = models.ForeignKey(to='UserInfo', on_delete=models.CASCADE, related_name='create_invite')

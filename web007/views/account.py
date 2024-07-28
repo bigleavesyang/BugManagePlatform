@@ -1,5 +1,6 @@
 from django.shortcuts import render, HttpResponse,redirect
 from django.http import JsonResponse
+from web007 import models
 from web007.forms.account import SendMsgForm, RegisterModelForm, SendMsgLoginForm, LoginForm
 
 
@@ -49,6 +50,7 @@ def login(request):
         return render(request, 'web007/login.html')
     form = LoginForm(request.POST)
     if form.is_valid():
+        # cleaned_data['username']返回的是一个对象。
         user_obj = form.cleaned_data['username']
         # 准备在session中保存用户对象，以判断用户是否是登录状态
         request.session['user_id'] = user_obj.id

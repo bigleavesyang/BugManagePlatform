@@ -176,7 +176,6 @@ def post_file(request, project_id):
         }
         return JsonResponse({'status': True, 'data': res})
     else:
-        print(form.errors)
         return JsonResponse({'status': False, 'error': '文件写入错误'})
 
 

@@ -2,14 +2,14 @@
     {% if my %}
       <li><h6 class="dropdown-header" style="font-size: 16px"><i class="fa fa-list" aria-hidden="true" style="margin-right: 20px;background-color: orangered;"></i>我创建的</h6></li>
       {% for item in my %}
-        <li><a class="dropdown-item" href="#">{{ item.project_name }}</a></li>
+        <li><a class="dropdown-item" href="{% url 'web007:dashboard' project_id=item.id %}">{{ item.project_name }}</a></li>
       {% endfor %}
       <li><hr class="dropdown-divider"></li>
     {% endif %}
     {% if join %}
       <li><h6 class="dropdown-header" style="font-size: 16px"><i class="fa fa-handshake-o" aria-hidden="true" style="margin-right: 20px;background-color: orangered;"></i>我参与的</h6></li>
       {% for item in join %}
-          <li><a class="dropdown-item" href="#">{{ item.project.project_name }}</a></li>
+          <li><a class="dropdown-item" href="{% url 'web007:dashboard' project_id=item.id %}">{{ item.project.project_name }}</a></li>
       {% endfor %}
         <li><hr class="dropdown-divider"></li>
     {% endif %}

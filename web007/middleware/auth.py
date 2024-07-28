@@ -32,16 +32,25 @@ class AuthMiddleware(MiddlewareMixin):
             return redirect('web007:login')
 
         # 获取用户权限额度, 按订单ID倒序排列，取最近一个就是付费订单
-        project_strategy = models.Order.objects.filter(user=user_obj, order_status=True).order_by('-id').first()
+        user_order = models.Order.objects.filter(user=user_obj, order_status=True).order_by('-id').first()
         current_time = datetime.datetime.now()
         # 如果用户策略是免费版，project_strategy为空，或者结束时间小于当前时间，则表明用户已经到期
-        if not project_strategy or project_strategy.order_end_time < current_time:
+        if not user_order:
             # 设置为免费版策略
-            request.tracer.price_strategy = models.ProjectStrategy.objects.filter(project_type=0).first()
+            project_strategy = models.ProjectStrategy.objects.filter(project_type=0).first()
+            request.tracer.price_strategy = project_strategy
             return
+        if user_order.order_end_time is not None and user_order.order_end_time < current_time:
+            # 设置为免费版策略
+            project_strategy = models.ProjectStrategy.objects.filter(project_type=0).first()
+            request.tracer.price_strategy = project_strategy
+            return
+        project_strategy = user_order.project_strategy if user_order else None
         # 用户有额度，则直接保存到request中
         request.tracer.price_strategy = project_strategy
 
+
+# 路由解析后，视图函数执行之前，先执行process_view方法
     def process_view(self, request, view_func, view_args, view_kwargs):
         # 如果访问的不是后台管理页面，则直接放行
         if not request.path_info.startswith('/manage/'):

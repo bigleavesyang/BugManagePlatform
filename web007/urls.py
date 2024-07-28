@@ -1,4 +1,6 @@
 from django.urls import path, include
+
+from web007.templatetags import issues_id
 from web007.views import account
 from web007.views import project
 from web007.views import home
@@ -20,7 +22,6 @@ urlpatterns = [
 
     # 项目展示模块
     path('project-list/', project.project_list, name='project_list'),
-
     # ?P<project_type>是URL模式中捕获的参数。?P是正则表达式开始，\w+是正则表达式
     # 这是这个URL模式的名字。你可以使用这个名字在Django的模板中通过{% url 'project_star'
     #  project_type=some_type project_id=some_id %}来生成URL，或者在Python代码中通
@@ -54,10 +55,15 @@ urlpatterns = [
 
         # 问题处理相关路径
         path('issues/', issues.issues, name='issues'),
-
+        path('issues/detail/<int:issues_id>',issues.issues_detail, name='issues_detail'),
+        path('issues/issues-record/<int:issues_id>/', issues.issues_record,name='issues_record'),
+        path('issues/issues-change/<int:issues_id>/', issues.issues_change,name='issues_change'),
+        path('issues/project-invite/',issues.project_invite,name='project_invite'),
 
         path('statistics/', manage.statistics, name='statistics'),
-    ]))
+    ])),
+    # 放在manage路径外面，以为被邀请成员，没有权限进入管理页面
+    path('invite-join/<str:invite_code>/',issues.invite_join,name='invite_join'),
 ]
 
 app_name = 'web007'

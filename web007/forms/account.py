@@ -14,7 +14,7 @@ class RegisterModelForm(forms.ModelForm):
     username = forms.CharField(
         label='用户名',
         error_messages={
-            'required': '用户名不能为空',
+          'required': '用户名不能为空',
         },
         validators=[
             RegexValidator('^[a-zA-Z0-9_]{8,16}$',
@@ -27,6 +27,7 @@ class RegisterModelForm(forms.ModelForm):
         error_messages={
             'max_length': '邮箱长度不能大于32',
             'required': '邮箱不能为空',
+
         },
         validators=[
             RegexValidator('^[a-zA-Z0-9_-]+@[a-zA-Z0-9]+\\.[a-z]+$',
@@ -129,8 +130,8 @@ class RegisterModelForm(forms.ModelForm):
         # user_id传入的是一个user对象，而不是id，user_id_id是user的id,_id是django添加的。
         order_id = str(uuid.uuid4())
         models.Order.objects.create(
-            order_status=True, order_number=order_id, order_year=0, order_price=0,
-            order_pay_time=None, order_end_time=None, user=user, project=project_strategy
+            order_status=False, order_number=order_id, order_year=0, order_price=0,
+            order_pay_time=None, order_end_time=None, user=user, project_strategy=project_strategy
         )
 
 
@@ -162,6 +163,7 @@ class SendMsgForm(forms.Form):
                 raise ValidationError('手机号未注册')
         # 生成验证码并判断是否发送成功
         code = str(random.randrange(1000, 9999))
+        print(code)
         sms_phone_num = '+86' + mobile_phone
         # 短信
         res = sms.send_sms_msg(sms_phone_num, template_id, code)
