@@ -1,10 +1,286 @@
 {% extends 'web007/layout/manage.html' %}
+{% load static %}
+{% load dashboard %}
+{% load issues_id %}
 
-{% block css %}{% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'highcharts/css/highcharts.css' %}">
+    <style>
+        .table-right > tbody > tr > td.label-left {
+            width: 90px;
+        }
 
-{% block content %}
-    概览
+        .table-right > tbody > tr > td {
+            border: 0;
+        }
 
+        .status-count {
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .status-count .count {
+            font-size: 25px;
+        }
+
+        .status-count a {
+            text-decoration: none;
+        }
+
+        .user-item .title {
+            margin-bottom: 20px;
+        }
+
+        .user-item .avatar, .top-10 .avatar {
+            float: left;
+            margin-right: 10px;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: #304659;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+        }
+
+        .user-item .text {
+            line-height: 30px;
+        }
+
+        .top-10 .avatar {
+            margin-right: 0;
+        }
+
+        .top-10 td {
+            padding: 5px 10px;
+        }
+
+        .top-10 .table > tbody > tr > td {
+            border-top: 0;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
 {% endblock %}
 
-{% block js %}{% endblock %}
+{% block content %}
+    <div class="container-fluid" style="margin-top: 90px;">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card card-default"  style="margin-bottom: 20px">
+                    <div class="card-header">
+                        <i class="fa fa-bar-chart" aria-hidden="true"></i>
+                        新增问题趋势
+                    </div>
+                    <div class="card-body">
+                        <div id="chart" style="width:100%;min-height:200px"></div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card card-default">
+                            <div class="card-header">
+                                <i class="fa fa-quora" aria-hidden="true"></i>
+                                问题
+                            </div>
+                            <div class="card-body" style="display: flex;flex-wrap: wrap">
+                                {% for key,item in status_dict.items %}
+                                    <div class="col-sm-4 status-count">
+                                        <a href="{% url 'web007:issues' project_id=request.tracer.project.id %}?status={{ key }}">
+                                            <div class="count">{{ item.count }}</div>
+                                            <div>{{ item.text }}</div>
+                                        </a>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card card-default">
+                            <div class="card-header">
+                                <i class="fa fa-user" aria-hidden="true"></i>
+                                项目成员
+                            </div>
+                            <div class="card-body user-item">
+                                <div class="col-sm-12 title">创建者</div>
+                                <div class="clearfix" style="margin-bottom: 30px;">
+                                    <div class="col-sm-4">
+                                        <div class="avatar">{{ request.tracer.project.project_creator.username.0|upper }}</div>
+                                        <div class="text">{{ request.tracer.project.project_creator.username }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 title">参与者</div>
+                                <div>
+                                    {% for item in user_list %}
+                                        <div class="col-sm-4">
+                                            <div class="avatar">{{ item.collaborator__username.0|upper }}</div>
+                                            <div class="text">{{ item.collaborator__username }}</div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-md-4">
+                <div class="card card-default" style="margin-bottom: 20px">
+                    <div class="card-header">
+                        <i class="fa fa-cog title-icon"></i>
+                        详细
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-right">
+                            <tbody>
+                            <tr>
+                                <td class="label-left">项目名称:</td>
+                                <td>{{ request.tracer.project.project_name }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label-left">项目描述:</td>
+                                <td>{{ request.tracer.project.project_description }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label-left">创建时间:</td>
+                                <td>{{ request.tracer.project.project_create_time }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label-left">项目空间:</td>
+                                <td> {% user_space request.tracer.project.project_used_space %}
+                                    / {{ request.tracer.price_strategy.project_max_space }} MB
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card card-default">
+                    <div class="card-header">
+                        <i class="fa fa-list-ul" aria-hidden="true"></i>
+                        动态
+                    </div>
+                    <div class="card-body top-10">
+                        <table class="table">
+                            <tbody>
+                            {% for item in top_ten_object %}
+                                <tr>
+                                    <td style="width: 46px;">
+                                        <div class="avatar">{{ item.creator.username.0|upper }}</div>
+                                    </td>
+                                    <td>
+                                        <div>{{ item.creator.username }}</div>
+                                        <div>指派
+                                            <a href="{% url 'web007:issues_detail' project_id=request.tracer.project.id issues_id=item.id %}">{% change_issue_id item.id %}</a>
+                                            给 {{ item.assign.username }}
+                                        </div>
+                                    </td>
+                                    <td style="width: 156px;">
+                                        {{ item.create_datetime }}
+                                    </td>
+                                </tr>
+
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'highcharts/js/highcharts.js' %}"></script>
+    <script src="{% static 'highcharts/modules/accessibility.js' %}"></script>
+    <script>
+    let INIT_CHART = "{% url 'web007:issues_chart' project_id=request.tracer.project.id %}";
+    // highcharts 配置UTC时间，设置为本地时间，取消UTC时间
+    Highcharts.setOptions({
+            global: {
+                useUTC: false
+            }
+        });
+
+    $(function () {
+        initChart();
+    })
+
+    function initChart() {
+            // chart
+            let config = {
+                title: {
+                    text: null   // 不显示标题
+                },
+                legend: {
+                    enabled: false // 关闭图例提示
+                },
+                credits: {
+                    enabled: false // 关闭版权信息
+                },
+                yAxis: {
+                    title: {
+                        text: '问题数量' // Y轴文本提示
+                    }
+                },
+                xAxis: {
+                    // 由于这里设置的时间是时间戳，所以后端需要返回时间戳格式来满足前端的渲染。
+                    type: 'datetime',
+                    tickInterval: 60 * 60 * 24 * 1000,
+                    labels: {
+                        formatter: function () {
+                            return Highcharts.dateFormat('%m-%d', this.value);
+                        },
+                        rotation: -30
+                    }
+                },
+                tooltip: {
+                    headerFormat: '<b>{point.key}</b><br>',
+                    pointFormat: '<span style="color:{series.color}">\u25CF</span> 数量: {point.y} ',
+                    xDateFormat: '%Y-%m-%d',
+                },
+                plotOptions: {
+                    area: {
+                        stacking: 'normal',
+                        lineColor: '#666666',
+                        lineWidth: 1,
+                        marker: {
+                            lineWidth: 1,
+                            lineColor: '#666666'
+                        }
+                    }
+                },
+                /*
+                * 图表数据格式
+                * series: [
+                    {
+                        name:'苹果',
+                        data: [1,2,3,4,5,65,76,8778]
+                    },
+                    {
+                        name:'句子',
+                        data: [1,2,3,4,5,65,76,8778]
+                    }
+                ]
+                * */
+                series: [{
+                    data: []
+                }]
+            };
+             $.ajax({
+                url: INIT_CHART,
+                type: "GET",
+                dataType: "JSON",
+                success: function (res) {
+                        config.series[0].data = res.data;
+                        let chart = Highcharts.chart('chart', config);
+                    }
+                })
+    }
+    </script>
+{% endblock %}

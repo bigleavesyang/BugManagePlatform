@@ -28,7 +28,7 @@
                     <a class="nav-link" href="#">帮助文档</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">价格</a>
+                    <a class="nav-link" href="{% url 'web007:price' %}">价格</a>
                 </li>
             </ul>
             {% if request.tracer.user.username %}

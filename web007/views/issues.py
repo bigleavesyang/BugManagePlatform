@@ -115,7 +115,7 @@ def issues(request, project_id):
         # 筛选条件字典
         condition = {}
         for name in allow_filter_name:
-            # 从GET中获取参数列表
+            # 从GET中获取某个具体参数列表
             request_list = request.GET.getlist(name)
             # 如果参数列表为空，跳过
             if not request_list:
@@ -138,7 +138,7 @@ def issues(request, project_id):
             all_count=query_set.count(),
             base_url=request.path_info,
             query_params=request.GET,
-            per_page=20
+            per_page=10
         )
         # 分页后返回的问题对象列表
         issues_obj_list = query_set[page_object.start:page_object.end]
@@ -148,7 +148,7 @@ def issues(request, project_id):
         # 获取项目的所有成员，创建者+参与者
         pro_member_list = [
             (request.tracer.project.project_creator_id, request.tracer.project.project_creator.username), ]
-        pro_collaborator_list = ProjectCollaborator.objects.filter(project_id=project_id).values_list('id',
+        pro_collaborator_list = ProjectCollaborator.objects.filter(project_id=project_id).values_list('collaborator_id',
                                                                                                       'collaborator__username')
         pro_member_list.extend(pro_collaborator_list)
         # 生成邀请表单返回给前端，用于添加项目成员时渲染
@@ -160,6 +160,7 @@ def issues(request, project_id):
             'issues_obj_list': issues_obj_list,
             'page_html': page_html,
             'filter_list': [
+                #  调用生成器，生成返回前端HTML代码
                 {'title': '问题类型', 'filter': CheckList('issues_type', request, pro_issues_type_list)},
                 {'title': '状态', 'filter': CheckList('status', request, Issue.status_choices)},
                 {'title': '优先级', 'filter': CheckList('priority', request, Issue.priority_choices)},
@@ -265,9 +266,8 @@ def invite_join(request, invite_code):
     if ProjectCollaborator.objects.filter(project=request.tracer.project, collaborator=request.tracer.user).exists():
         return render(request, 'web007/invite-join.html', {'error': '您是项目成员，不需要邀请码'})
 
-    # 根据订单表，判断当前用户权限，如果是付费用户，则最大邀请人数就是付费策略中的最大邀请人数
-    user_strategy = Order.objects.filter(user=invite_obj.creator).order_by('-id').first() # 倒序排列，得到最近一次的订单情况
-    max_member = 0
+    # 根据订单表，判断项目创建者权限，如果是付费用户，则最大邀请人数就是付费策略中的最大邀请人数
+    user_strategy = Order.objects.filter(user=invite_obj.project.project_creator).order_by('-id').first() # 倒序排列，得到最近一次的订单情况
     if user_strategy.project_strategy.project_type == 1:
         max_member = user_strategy.project_strategy.project_max_collaborator
         # 如果是付费用户，如果到期了，则按照免费用户处理
@@ -302,5 +302,3 @@ def invite_join(request, invite_code):
     invite_obj.project.save()
     # 把被邀请到的项目返回给被邀请客户。
     return render(request, 'web007/invite-join.html', {'project': invite_obj.project})
-
-

@@ -1,14 +1,14 @@
 from django.urls import path, include
 
-from web007.templatetags import issues_id
 from web007.views import account
 from web007.views import project
 from web007.views import home
-from web007.views import manage
 from web007.views import wiki
 from web007.views import file
 from web007.views import settings
 from web007.views import issues
+from web007.views import dashboard
+from web007.views import statistics
 
 urlpatterns = [
     # 用户模块
@@ -32,7 +32,6 @@ urlpatterns = [
 
     # 项目内部模块
     path('manage/<int:project_id>/', include([
-        path('dashboard/', manage.dashboard, name='dashboard'),
 
         path('wiki/', wiki.index, name='wiki'),
         path('wiki/add/', wiki.add, name='wiki_add'),
@@ -60,10 +59,21 @@ urlpatterns = [
         path('issues/issues-change/<int:issues_id>/', issues.issues_change,name='issues_change'),
         path('issues/project-invite/',issues.project_invite,name='project_invite'),
 
-        path('statistics/', manage.statistics, name='statistics'),
+        # 项目首页路径
+        path('dashboard/', dashboard.dashboard, name='dashboard'),
+        path('dashboard/issues-chart/', dashboard.issues_chart, name='issues_chart'),
+
+
+        path('statistics/', statistics.statistics, name='statistics'),
+        path('statistics/statistics/priority/', statistics.statistics_priority, name='statistics_priority'),
+        path('statistics/statistics/project-user/',statistics.statistics_project_user,name='statistics_project_user'),
     ])),
     # 放在manage路径外面，以为被邀请成员，没有权限进入管理页面
     path('invite-join/<str:invite_code>/',issues.invite_join,name='invite_join'),
+    path('price/',home.price,name='price'),
+    path('payment/<int:policy_id>/',home.payment,name='payment'),
+    path('pay/',home.pay,name='pay'),
+    path('pay-return/',home.pay_return,name='pay_return')
 ]
 
 app_name = 'web007'

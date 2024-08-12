@@ -1,0 +1,25 @@
+ Django的查询集（QuerySet）API确实提供了多种过滤方法，除了使用__gte进行大于等于的比较外，以下是一些常用的过滤方法：
+
+__gt：大于（greater than）。例如，Product.objects.filter(price__gt=100) 会选择价格大于100的产品。
+
+__lt：小于（less than）。例如，Product.objects.filter(price__lt=100) 会选择价格小于100的产品。
+
+__lte：小于等于（less than or equal to）。例如，Product.objects.filter(price__lte=100) 会选择价格小于或等于100的产品。
+
+__in：在给定列表中。例如，Product.objects.filter(id__in=[1, 2, 3]) 会选择ID为1、2或3的产品。
+
+__nin（注意：这不是Django官方的查询方式，但类似的功能可以通过~Q()实现）：不在给定列表中。你可以使用Q对象结合~（非）操作符来实现不在给定列表中的查询。
+
+__isnull：检查是否为NULL。True表示选择NULL值，False表示选择非NULL值。例如，Product.objects.filter(release_date__isnull=True) 会选择尚未设置发布日期的产品。
+
+__icontains、__contains：包含关系。__icontains用于不区分大小写的包含检查，而__contains用于区分大小写的包含检查。例如，Product.objects.filter(name__icontains='apple') 会选择名称中包含"apple"（不区分大小写）的产品。
+
+__startswith、__istartswith、__endswith、__iendswith：字符串的开始和结束匹配。__istartswith和__iendswith是不区分大小写的版本。
+
+__range：在指定的范围内。例如，Product.objects.filter(price__range=[100, 200]) 会选择价格在100到200之间的产品（包括100和200）。
+
+__date、__year、__month、__day、__week_day、__hour、__minute、__second：用于日期和时间的过滤。这些可以与DateTimeField、DateField和TimeField一起使用来执行更具体的日期/时间过滤。
+
+__regex、__iregex：使用正则表达式进行匹配。__iregex是不区分大小写的版本。
+
+Q 对象：用于执行复杂的查询，包括逻辑与（&）、逻辑或（|）和逻辑非（~）操作。这允许你构建非常灵活的查询条件。

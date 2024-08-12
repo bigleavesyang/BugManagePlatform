@@ -90,6 +90,8 @@ class ProjectDetail(models.Model):
     project_bucket = models.CharField(verbose_name='存储桶', max_length=64)
     # 存储桶所在地
     project_bucket_location = models.CharField(verbose_name='存储桶所在地', max_length=32, default='ap-beijing')
+    # 创建时间
+    project_create_time = models.DateTimeField(verbose_name='项目创建时间', auto_now_add=True)
 
 
 # 项目参与表
