@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: bug_manage_platform
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+      - uwsgi_log:/var/log/uwsgi
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_ROOT_PASSWORD=123456
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=123456
+    depends_on:
+      - mysql
+      - redis
+      - python_interpreter
+    networks:
+      - bug_manage_platform_network
+    restart: always
+
+  python_interpreter:
+    image: python:latest
+    container_name: python_interpreter
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: tail -f /dev/null  # 保持容器运行
+    networks:
+      - bug_manage_platform_network
+    restart: always
+
+  mysql:
+    container_name: mysql
+    image: bitnami/mysql:latest
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+    volumes:
+      - /root/bug_manage_platform/mysql:/bitnami/mysql/data
+    networks:
+      - bug_manage_platform_network
+    restart: always
+
+  redis:
+    container_name: redis
+    image: bitnami/redis:latest
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=123456
+    volumes:
+      - /root/bug_manage_platform/redis:/bitnami/redis/data
+    networks:
+      - bug_manage_platform_network
+    restart: always
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - static_volume:/usr/share/nginx/html/static
+      - media_volume:/usr/share/nginx/html/media
+    depends_on:
+      - web
+    networks:
+      - bug_manage_platform_network
+    restart: always
+
+networks:
+  bug_manage_platform_network:
+    driver: bridge
+
+volumes:
+  static_volume:
+  media_volume:
+  uwsgi_log: 

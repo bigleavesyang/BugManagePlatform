@@ -1,5 +1,5 @@
 from django.shortcuts import render, HttpResponse, redirect
-from django.http import JsonResponse
+from django.http.response import JsonResponse
 from web007.forms.project import ProjectModelForm
 from web007 import models
 from utils.tencent import cos
