@@ -8,18 +8,28 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV DB_PASSWORD="123456"
 
-# 使用腾讯云源替换默认的apt源
-RUN echo "deb https://mirrors.cloud.tencent.com/debian/ bookworm main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
-    echo "deb https://mirrors.cloud.tencent.com/debian/ bookworm-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list && \
-    echo "deb https://mirrors.cloud.tencent.com/debian-security bookworm-security main contrib non-free non-free-firmware" >> /etc/apt/sources.list
+# 使用阿里云源替换默认的apt源
+RUN echo "deb http://mirrors.aliyun.com/debian/ bookworm main contrib non-free" > /etc/apt/sources.list && \
+    echo "deb http://mirrors.aliyun.com/debian/ bookworm-updates main contrib non-free" >> /etc/apt/sources.list && \
+    echo "deb http://mirrors.aliyun.com/debian-security/ bookworm/updates main contrib non-free" >> /etc/apt/sources.list
 
 # 安装系统依赖
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
+RUN apt update \
+    && apt install -y --no-install-recommends \
     gcc \
     python3-dev \
     python3-pip \
+    python3-venv \
+    python3-full \
+    netcat-traditional \
+    pkg-config \
+    default-libmysqlclient-dev \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
+
+# 创建并激活虚拟环境
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # 配置pip使用阿里云源
 RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ \
