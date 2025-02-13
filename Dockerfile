@@ -1,5 +1,4 @@
-FROM debian:12-slim
-
+FROM python:3.12-slim-bullseye
 # 设置工作目录
 WORKDIR /app
 
@@ -8,28 +7,17 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV DB_PASSWORD="123456"
 
-# 使用阿里云源替换默认的apt源
-RUN echo "deb http://mirrors.aliyun.com/debian/ bookworm main contrib non-free" > /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/debian/ bookworm-updates main contrib non-free" >> /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/debian-security/ bookworm/updates main contrib non-free" >> /etc/apt/sources.list
 
 # 安装系统依赖
 RUN apt update \
     && apt install -y --no-install-recommends \
     gcc \
     python3-dev \
-    python3-pip \
-    python3-venv \
-    python3-full \
-    netcat-traditional \
     pkg-config \
-    default-libmysqlclient-dev \
+    libmariadb-dev-compat \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# 创建并激活虚拟环境
-RUN python3 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
 
 # 配置pip使用阿里云源
 RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ \

@@ -2,14 +2,13 @@ version: '3.8'
 
 services:
   web:
-    build: .
+    image: bug_manage_platform
     container_name: bug_manage_platform
     ports:
       - "8080:8080"
     volumes:
-      - .:/app
+      - /root/bug_manage_platform/code:/app
       - static_volume:/app/static
-      - media_volume:/app/media
       - uwsgi_log:/var/log/uwsgi
     environment:
       - MYSQL_HOST=mysql
@@ -21,18 +20,6 @@ services:
     depends_on:
       - mysql
       - redis
-      - python_interpreter
-    networks:
-      - bug_manage_platform_network
-    restart: always
-
-  python_interpreter:
-    image: python:latest
-    container_name: python_interpreter
-    volumes:
-      - .:/app
-    working_dir: /app
-    command: tail -f /dev/null  # 保持容器运行
     networks:
       - bug_manage_platform_network
     restart: always
@@ -44,6 +31,7 @@ services:
       - "3306:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_DATABASE="BugManagePlatform"
     volumes:
       - /root/bug_manage_platform/mysql:/bitnami/mysql/data
     networks:
@@ -64,14 +52,12 @@ services:
     restart: always
 
   nginx:
-    image: nginx:alpine
+    image: nginx:latest
     container_name: nginx
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - static_volume:/usr/share/nginx/html/static
-      - media_volume:/usr/share/nginx/html/media
+      - /root/bug_manage_platform/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - web
     networks:
@@ -84,5 +70,4 @@ networks:
 
 volumes:
   static_volume:
-  media_volume:
   uwsgi_log: 

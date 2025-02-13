@@ -41,8 +41,6 @@ ENV/
 # Local development settings
 local_settings.py
 
-# lacal test dir
-app01/
 
 # Unit test / coverage reports
 htmlcov/
