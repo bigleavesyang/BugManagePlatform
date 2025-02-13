@@ -1,4 +1,4 @@
-FROM debian:12
+FROM debian:12-slim
 
 # 设置工作目录
 WORKDIR /app
