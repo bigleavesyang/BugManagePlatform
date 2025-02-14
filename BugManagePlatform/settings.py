@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-nusmi$8w9xmk+$cb%q(hsorfu)4=+9+i3se=xtiz=u7@ml=b6u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -89,10 +89,10 @@ DATABASES = {
         # 'ENGINE': 'django.db.backends.mysql',
         # 安装了连接池之后的数据库配置
         'ENGINE': 'dj_db_conn_pool.backends.mysql',
-        'NAME': 'BugManagePlatform',
+        'NAME': '"BugManagePlatform"',
         'USER': 'root',
         'PASSWORD': os.environ.get("DB_PASSWORD"),
-        'HOST': '127.0.0.1',
+        'HOST': 'mysql',
         'PORT': '3306',
         'POOL_OPTIONS': {
             'pool_size': 10,
@@ -143,9 +143,15 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# 开发时查找静态文件的目录
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'web007', 'static'),
 ]
+
+# collectstatic收集静态文件的目录
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

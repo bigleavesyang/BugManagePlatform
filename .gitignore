@@ -58,11 +58,13 @@ cover/
 
 # Django stuff:
 *.log
+# 尽量加上相对路径，因为.gitignore是从父目录向下搜寻出来的
 local_settings.py
 备注.txt
 注意的点.txt
 BugManagePlatform每日作业.md
 123.py
+# 目录可以不加/
 alipay_password/
 db.sqlite3
 db.sqlite3-journal

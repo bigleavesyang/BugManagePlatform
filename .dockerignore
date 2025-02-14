@@ -39,7 +39,6 @@ ENV/
 *.log
 
 # Local development settings
-local_settings.py
 
 
 # Unit test / coverage reports
@@ -52,6 +51,4 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
-
 # important files
-alipay_password/

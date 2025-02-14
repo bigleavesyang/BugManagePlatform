@@ -2,17 +2,21 @@
 # -*- coding: utf-8 -*-
 import logging
 import traceback
+import os
 from BugManagePlatform import settings
 from alipay.aop.api.AlipayClientConfig import AlipayClientConfig
 from alipay.aop.api.DefaultAlipayClient import DefaultAlipayClient
 from alipay.aop.api.domain.AlipayTradePagePayModel import AlipayTradePagePayModel
 from alipay.aop.api.request.AlipayTradePagePayRequest import AlipayTradePagePayRequest
 from alipay.aop.api.response.AlipayTradeCreateResponse import AlipayTradeCreateResponse
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(levelname)s %(message)s',
-    filemode='a',)
+    filemode='a', )
 logger = logging.getLogger('')
+
+
 def pay(order_id, price, subject):
     # 实例化客户端
     alipay_client_config = AlipayClientConfig()
@@ -21,9 +25,9 @@ def pay(order_id, price, subject):
     alipay_client_config.app_private_key = '请填写开发者私钥去头去尾去回车，单行字符串'
     alipay_client_config.alipay_public_key = '请填写支付宝公钥，单行字符串'
     BASE_DIR = settings.BASE_DIR
-    with open(f'{BASE_DIR}\\alipay_password\\支付宝私钥.txt', 'r') as f:
+    with open(os.path.join(BASE_DIR, "alipay_password", "alipay_private.txt"), 'r') as f:
         alipay_client_config.app_private_key = f.read()
-    with open(f'{BASE_DIR}\\alipay_password\\支付宝公钥.txt', 'r') as f:
+    with open(os.path.join(BASE_DIR, "alipay_password", "alipay_public.txt"), 'r') as f:
         alipay_client_config.alipay_public_key = f.read()
     client = DefaultAlipayClient(alipay_client_config, logger)
     # 构造请求参数对象
@@ -33,8 +37,8 @@ def pay(order_id, price, subject):
     model.subject = subject
     model.product_code = 'FAST_INSTANT_TRADE_PAY'
     request = AlipayTradePagePayRequest(biz_model=model)
-    request.notify_url = 'http://127.0.0.1:8000/pay-return/'
-    request.return_url = 'http://127.0.0.1:8000/pay-return/'
+    request.notify_url = 'http://127.0.0.1/pay-return/'
+    request.return_url = 'http://127.0.0.1/pay-return/'
     # 执行API调用
     response = client.page_execute(request, http_method="GET")
     return response

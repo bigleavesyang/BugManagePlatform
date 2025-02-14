@@ -7,6 +7,10 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV DB_PASSWORD="123456"
 
+# 配置apt使用阿里云镜像源
+RUN echo "deb http://mirrors.aliyun.com/debian/ bullseye main non-free contrib" > /etc/apt/sources.list \
+    && echo "deb http://mirrors.aliyun.com/debian/ bullseye-updates main non-free contrib" >> /etc/apt/sources.list \
+    && echo "deb http://mirrors.aliyun.com/debian-security/ bullseye-security main" >> /etc/apt/sources.list
 
 # 安装系统依赖
 RUN apt update \
@@ -16,6 +20,7 @@ RUN apt update \
     pkg-config \
     libmariadb-dev-compat \
     build-essential \
+    netcat-traditional \
     && rm -rf /var/lib/apt/lists/*
 
 
@@ -56,14 +61,17 @@ done\n\
 # 执行数据库迁移\n\
 python manage.py migrate --noinput\n\
 \n\
-# 收集静态文件\n\
+# 收集静态资源\n\
 python manage.py collectstatic --noinput\n\
 \n\
 # 启动uwsgi\n\
-uwsgi --ini uwsgi.ini' > /app/start.sh
+uwsgi --ini uwsgi.ini\n\
+\n\
+# 保持容器运行并监控uwsgi日志\n\
+tail -f /var/log/uwsgi/uwsgi.log' > /app/start.sh
 
 # 给启动脚本添加执行权限
 RUN chmod +x /app/start.sh
 
 # 使用启动脚本作为入口点
-CMD ["/app/start.sh"] 
+CMD ["/app/start.sh"]

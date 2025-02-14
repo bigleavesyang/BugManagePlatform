@@ -13,7 +13,7 @@ def run():
     from web007 import models
 
     models.ProjectStrategy.objects.create(
-        project_type=2,
+        project_type=1,
         project_title='VIP',
         project_price=100,
         project_count=50,
@@ -23,7 +23,7 @@ def run():
     )
 
     models.ProjectStrategy.objects.create(
-        project_type=2,
+        project_type=1,
         project_title='SVIP',
         project_price=200,
         project_count=100,
@@ -33,7 +33,7 @@ def run():
     )
 
     models.ProjectStrategy.objects.create(
-        project_type=2,
+        project_type=1,
         project_title='SSVIP',
         project_price=300,
         project_count=300,
