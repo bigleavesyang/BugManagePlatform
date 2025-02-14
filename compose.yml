@@ -30,7 +30,7 @@ services:
       - MYSQL_ROOT_PASSWORD=123456
       - MYSQL_DATABASE=BugManagePlatform
     volumes:
-      - ./bug_manage_platform/mysql:/bitnami/mysql/data
+      - /root/bug_manage_platform/mysql:/bitnami/mysql/data
     networks:
       - bug_manage_platform_network
     restart: always
@@ -43,7 +43,7 @@ services:
     environment:
       - REDIS_PASSWORD=123456
     volumes:
-      - ./bug_manage_platform/redis:/bitnami/redis/data
+      - /root/bug_manage_platform/redis:/bitnami/redis/data
     networks:
       - bug_manage_platform_network
     restart: always
@@ -54,7 +54,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./bug_manage_platform/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - /root/bug_manage_platform/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
       - static_volume:/usr/share/nginx/html/static
     depends_on:
       - web
